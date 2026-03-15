@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-outfit: "Outfit", sans-serif;
+  --font-noto: "Noto Sans KR", sans-serif;
+
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-pop-in: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-shimmer: shimmer 2s linear infinite;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+}
+
+.font-outfit {
+  font-family: "Outfit", sans-serif;
+}
+
+/* iOS input zoom 방지 (16px 이상이면 줌 안함) */
+input, select, textarea {
+  font-size: 16px;
+}
+
+/* 모바일 safe area 유틸리티 */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 스크롤바 숨기기 (모바일 감성) */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -1,0 +1,14 @@
+{
+  "district_id": "seoul-sinchon",
+  "district_name": "신촌",
+  "city": "서울",
+  "tourist_rank": "B",
+  "foreign_visitor_ratio": 0.15,
+  "daily_foot_traffic": 100000,
+  "popular_business_types": ["음식점", "카페", "주점", "뷰티샵"],
+  "nearby_landmarks": ["신촌역", "연세대학교", "이화여대"],
+  "google_maps_search_volume": "low",
+  "avg_naver_review_count": 120,
+  "avg_google_review_count": 15,
+  "competitor_density": "high"
+}

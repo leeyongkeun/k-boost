@@ -1,0 +1,21 @@
+{
+  "business_type": "매장",
+  "tiers": {
+    "S": {
+      "avg_naver_score": 4.1, "avg_naver_reviews": 140, "avg_google_score": 3.9, "avg_google_reviews": 25,
+      "avg_instagram_hashtags": 1500, "google_registration_rate": 0.5, "tripadvisor_registration_rate": 0.1, "english_support_rate": 0.2
+    },
+    "A": {
+      "avg_naver_score": 4.0, "avg_naver_reviews": 100, "avg_google_score": 3.8, "avg_google_reviews": 15,
+      "avg_instagram_hashtags": 800, "google_registration_rate": 0.35, "tripadvisor_registration_rate": 0.05, "english_support_rate": 0.1
+    },
+    "B": {
+      "avg_naver_score": 3.8, "avg_naver_reviews": 50, "avg_google_score": 3.5, "avg_google_reviews": 5,
+      "avg_instagram_hashtags": 300, "google_registration_rate": 0.2, "tripadvisor_registration_rate": 0.02, "english_support_rate": 0.05
+    },
+    "C": {
+      "avg_naver_score": 3.6, "avg_naver_reviews": 25, "avg_google_score": 3.3, "avg_google_reviews": 2,
+      "avg_instagram_hashtags": 100, "google_registration_rate": 0.1, "tripadvisor_registration_rate": 0.01, "english_support_rate": 0.02
+    }
+  }
+}

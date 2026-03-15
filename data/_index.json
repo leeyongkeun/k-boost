@@ -1,0 +1,31 @@
+{
+  "stores": [],
+  "areas": [
+    { "district_id": "seoul-hongdae", "names": ["홍대", "홍대입구", "홍익대"], "file": "areas/seoul-hongdae.json" },
+    { "district_id": "seoul-itaewon", "names": ["이태원", "해방촌"], "file": "areas/seoul-itaewon.json" },
+    { "district_id": "seoul-myeongdong", "names": ["명동"], "file": "areas/seoul-myeongdong.json" },
+    { "district_id": "seoul-gangnam", "names": ["강남", "역삼", "서초", "코엑스"], "file": "areas/seoul-gangnam.json" },
+    { "district_id": "seoul-seongsu", "names": ["성수", "서울숲", "뚝섬"], "file": "areas/seoul-seongsu.json" },
+    { "district_id": "seoul-euljiro", "names": ["을지로", "충무로"], "file": "areas/seoul-euljiro.json" },
+    { "district_id": "seoul-bukchon", "names": ["북촌", "안국", "경복궁", "삼청동"], "file": "areas/seoul-bukchon.json" },
+    { "district_id": "seoul-ikseon", "names": ["익선동", "종로3가"], "file": "areas/seoul-ikseon.json" },
+    { "district_id": "seoul-yeonnam", "names": ["연남", "연트럴파크"], "file": "areas/seoul-yeonnam.json" },
+    { "district_id": "seoul-hannam", "names": ["한남"], "file": "areas/seoul-hannam.json" },
+    { "district_id": "seoul-apgujeong", "names": ["압구정", "로데오", "도산공원", "청담"], "file": "areas/seoul-apgujeong.json" },
+    { "district_id": "seoul-sinchon", "names": ["신촌", "연세대", "이대"], "file": "areas/seoul-sinchon.json" },
+    { "district_id": "seoul-kondae", "names": ["건대", "건대입구"], "file": "areas/seoul-kondae.json" },
+    { "district_id": "seoul-jamsil", "names": ["잠실", "롯데월드", "석촌호수", "송파"], "file": "areas/seoul-jamsil.json" },
+    { "district_id": "seoul-dongdaemun", "names": ["동대문", "DDP"], "file": "areas/seoul-dongdaemun.json" },
+    { "district_id": "seoul-insadong", "names": ["인사동", "쌈지길"], "file": "areas/seoul-insadong.json" },
+    { "district_id": "seoul-gyeongnidan", "names": ["경리단길", "녹사평"], "file": "areas/seoul-gyeongnidan.json" },
+    { "district_id": "seoul-mangwon", "names": ["망원", "합정"], "file": "areas/seoul-mangwon.json" },
+    { "district_id": "seoul-seochon", "names": ["서촌", "통인시장"], "file": "areas/seoul-seochon.json" },
+    { "district_id": "seoul-yeouido", "names": ["여의도"], "file": "areas/seoul-yeouido.json" },
+    { "district_id": "busan-haeundae", "names": ["해운대", "광안리", "마린시티"], "file": "areas/busan-haeundae.json" },
+    { "district_id": "busan-seomyeon", "names": ["서면", "전포"], "file": "areas/busan-seomyeon.json" },
+    { "district_id": "gyeongju", "names": ["경주", "불국사", "황리단길"], "file": "areas/gyeongju.json" },
+    { "district_id": "jeonju-hanok", "names": ["전주", "한옥마을"], "file": "areas/jeonju-hanok.json" },
+    { "district_id": "jeju-city", "names": ["제주", "제주시"], "file": "areas/jeju-city.json" },
+    { "district_id": "jeju-seogwipo", "names": ["서귀포", "중문"], "file": "areas/jeju-seogwipo.json" }
+  ]
+}

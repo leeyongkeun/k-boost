@@ -1,0 +1,14 @@
+{
+  "district_id": "jeju-city",
+  "district_name": "제주시",
+  "city": "제주",
+  "tourist_rank": "A",
+  "foreign_visitor_ratio": 0.30,
+  "daily_foot_traffic": 80000,
+  "popular_business_types": ["카페", "음식점", "횟집", "게스트하우스"],
+  "nearby_landmarks": ["제주공항", "탑동", "동문시장", "용두암"],
+  "google_maps_search_volume": "high",
+  "avg_naver_review_count": 130,
+  "avg_google_review_count": 25,
+  "competitor_density": "medium"
+}

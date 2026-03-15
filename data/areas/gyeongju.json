@@ -1,0 +1,14 @@
+{
+  "district_id": "gyeongju",
+  "district_name": "경주",
+  "city": "경주",
+  "tourist_rank": "A",
+  "foreign_visitor_ratio": 0.25,
+  "daily_foot_traffic": 60000,
+  "popular_business_types": ["한식당", "카페", "빵집", "기념품샵"],
+  "nearby_landmarks": ["불국사", "첨성대", "대릉원", "황리단길"],
+  "google_maps_search_volume": "high",
+  "avg_naver_review_count": 100,
+  "avg_google_review_count": 25,
+  "competitor_density": "medium"
+}

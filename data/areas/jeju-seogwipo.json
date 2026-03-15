@@ -1,0 +1,14 @@
+{
+  "district_id": "jeju-seogwipo",
+  "district_name": "서귀포",
+  "city": "제주",
+  "tourist_rank": "B",
+  "foreign_visitor_ratio": 0.25,
+  "daily_foot_traffic": 50000,
+  "popular_business_types": ["카페", "음식점", "횟집", "펜션"],
+  "nearby_landmarks": ["중문관광단지", "천지연폭포", "서귀포매일올레시장"],
+  "google_maps_search_volume": "medium",
+  "avg_naver_review_count": 100,
+  "avg_google_review_count": 20,
+  "competitor_density": "low"
+}

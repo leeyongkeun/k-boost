@@ -1,0 +1,14 @@
+{
+  "district_id": "seoul-gangnam",
+  "district_name": "강남",
+  "city": "서울",
+  "tourist_rank": "S",
+  "foreign_visitor_ratio": 0.25,
+  "daily_foot_traffic": 180000,
+  "popular_business_types": ["뷰티샵", "음식점", "카페", "클리닉"],
+  "nearby_landmarks": ["강남역", "코엑스", "봉은사"],
+  "google_maps_search_volume": "high",
+  "avg_naver_review_count": 200,
+  "avg_google_review_count": 40,
+  "competitor_density": "high"
+}
