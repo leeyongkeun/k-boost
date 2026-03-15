@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { AnalysisResult, ScoreBreakdown, KeyMetric } from "./types";
+import { logError } from "./error-logger";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -209,7 +210,9 @@ ${platformSummary}
       cta_message: ctaMessages[grade],
     };
   } catch (error) {
-    console.error("[claude] Analysis error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[claude] Analysis error:", msg);
+    logError({ searchKeyword: input.storeName, errorMessage: `Claude: ${msg}`, errorType: "claude_analysis" });
     return null;
   }
 }

@@ -3,11 +3,15 @@ import { QUESTIONS } from "@/lib/questions";
 import { QuizAnswers } from "@/lib/types";
 import { lookupStore } from "@/lib/data-lookup";
 import { analyzeWithData } from "@/lib/analyze-with-data";
+import { logError } from "@/lib/error-logger";
 
-// 분석 모드: "api" (네이버/카카오 API + Gemini 분석) | "gemini_search" (Gemini 웹검색) | "db" (DB 목데이터)
+// 분석 모드: "api" (네이버/카카오 API + Claude 분석) | "gemini_search" (Gemini 웹검색) | "db" (DB 목데이터)
 const ANALYZE_MODE = process.env.ANALYZE_MODE || "db";
 
-// 전체 분석에 15초 타임아웃
+const PLATFORM_SEARCH_TIMEOUT_MS = 14400;
+const GLOBAL_ANALYSIS_TIMEOUT_MS = 18000;
+
+// 전체 분석에 18초 타임아웃
 function withGlobalTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
@@ -66,9 +70,10 @@ export async function POST(request: NextRequest) {
 
       console.log("[analyze] API mode - searching platforms for:", storeName);
 
-      const platformData = await withGlobalTimeout(searchPlatforms(storeInfo), 12000);
+      const platformData = await withGlobalTimeout(searchPlatforms(storeInfo), PLATFORM_SEARCH_TIMEOUT_MS);
 
       if (!platformData) {
+        logError({ searchKeyword: storeInfo, errorMessage: "플랫폼 검색 결과 없음", errorType: "platform_search" });
         return NextResponse.json(
           { error: "매장을 찾을 수 없습니다. 매장명을 정확히 입력해주세요." },
           { status: 404 }
@@ -77,7 +82,7 @@ export async function POST(request: NextRequest) {
 
       console.log("[analyze] Platform search done in", Date.now() - startTime, "ms");
 
-      const remainingTime = Math.max(3000, 15000 - (Date.now() - startTime));
+      const remainingTime = Math.max(3000, GLOBAL_ANALYSIS_TIMEOUT_MS - (Date.now() - startTime));
       const result = await withGlobalTimeout(
         analyzeWithPlatformData({
           storeName: platformData.storeName,
@@ -98,6 +103,7 @@ export async function POST(request: NextRequest) {
       console.log("[analyze] Total time:", Date.now() - startTime, "ms");
 
       if (!result) {
+        logError({ searchKeyword: storeInfo, errorMessage: "Claude 분석 결과 null 반환", errorType: "claude_analysis" });
         return NextResponse.json(
           { error: "매장 분석에 실패했습니다. 다시 시도해주세요." },
           { status: 500 }
@@ -119,7 +125,7 @@ export async function POST(request: NextRequest) {
           changeWillingness,
           areaContext,
         }),
-        15000
+        GLOBAL_ANALYSIS_TIMEOUT_MS
       );
 
       if (!result) {
@@ -148,7 +154,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(dbResult);
   } catch (e) {
     const isTimeout = e instanceof Error && e.message === "TIMEOUT";
-    console.error("Analysis error:", isTimeout ? "15s timeout exceeded" : e);
+    const errorMsg = isTimeout ? "18s timeout exceeded" : (e instanceof Error ? e.message : String(e));
+    console.error("Analysis error:", errorMsg);
+    logError({
+      searchKeyword: undefined,
+      errorMessage: errorMsg,
+      errorType: isTimeout ? "timeout" : "unknown",
+    });
     return NextResponse.json(
       { error: isTimeout ? "분석 시간이 초과되었습니다. 다시 시도해주세요." : "분석 중 오류가 발생했습니다. 다시 시도해주세요." },
       { status: isTimeout ? 504 : 500 }

@@ -1,4 +1,7 @@
 import { PlatformInfo } from "./types";
+import { logError } from "./error-logger";
+
+const API_TIMEOUT_MS = 6000;
 
 interface NaverItem {
   title: string;
@@ -68,7 +71,7 @@ async function searchNaver(query: string): Promise<NaverItem | null> {
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
+    const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     const url = `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(query)}&display=1`;
     const res = await fetch(url, {
@@ -82,7 +85,9 @@ async function searchNaver(query: string): Promise<NaverItem | null> {
     clearTimeout(timer);
 
     if (!res.ok) {
-      console.error("[platform-search] Naver HTTP error:", res.status, await res.text());
+      const errText = await res.text();
+      console.error("[platform-search] Naver HTTP error:", res.status, errText);
+      logError({ searchKeyword: query, errorMessage: `Naver HTTP ${res.status}: ${errText.slice(0, 200)}`, errorType: "platform_search" });
       return null;
     }
 
@@ -92,7 +97,9 @@ async function searchNaver(query: string): Promise<NaverItem | null> {
 
     return data.items[0] as NaverItem;
   } catch (e) {
-    console.error("[platform-search] Naver error:", e instanceof Error ? e.message : e);
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[platform-search] Naver error:", msg);
+    logError({ searchKeyword: query, errorMessage: `Naver: ${msg}`, errorType: "platform_search" });
     return null;
   }
 }
@@ -104,7 +111,7 @@ async function searchKakao(query: string): Promise<KakaoDocument | null> {
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
+    const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=1`;
     const res = await fetch(url, {
@@ -117,7 +124,9 @@ async function searchKakao(query: string): Promise<KakaoDocument | null> {
     clearTimeout(timer);
 
     if (!res.ok) {
-      console.error("[platform-search] Kakao HTTP error:", res.status, await res.text());
+      const errText = await res.text();
+      console.error("[platform-search] Kakao HTTP error:", res.status, errText);
+      logError({ searchKeyword: query, errorMessage: `Kakao HTTP ${res.status}: ${errText.slice(0, 200)}`, errorType: "platform_search" });
       return null;
     }
 
@@ -127,7 +136,9 @@ async function searchKakao(query: string): Promise<KakaoDocument | null> {
 
     return data.documents[0] as KakaoDocument;
   } catch (e) {
-    console.error("[platform-search] Kakao error:", e instanceof Error ? e.message : e);
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[platform-search] Kakao error:", msg);
+    logError({ searchKeyword: query, errorMessage: `Kakao: ${msg}`, errorType: "platform_search" });
     return null;
   }
 }
@@ -148,7 +159,7 @@ async function searchGoogleMaps(query: string): Promise<{
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
+    const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
       method: "POST",
@@ -168,7 +179,9 @@ async function searchGoogleMaps(query: string): Promise<{
     clearTimeout(timer);
 
     if (!res.ok) {
-      console.error("[platform-search] Google Maps error:", res.status, await res.text());
+      const errText = await res.text();
+      console.error("[platform-search] Google Maps error:", res.status, errText);
+      logError({ searchKeyword: query, errorMessage: `Google Maps HTTP ${res.status}: ${errText.slice(0, 200)}`, errorType: "platform_search" });
       return null;
     }
 
@@ -191,7 +204,9 @@ async function searchGoogleMaps(query: string): Promise<{
       hasEnglish: hasEnglishReview,
     };
   } catch (e) {
-    console.error("[platform-search] Google Maps error:", e instanceof Error ? e.message : e);
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[platform-search] Google Maps error:", msg);
+    logError({ searchKeyword: query, errorMessage: `Google Maps: ${msg}`, errorType: "platform_search" });
     return null;
   }
 }
@@ -239,6 +254,7 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
   // 둘 다 못 찾으면 실패
   if (!naverResult && !kakaoResult) {
     console.log("[platform-search] Both failed for query:", query);
+    logError({ searchKeyword: query, errorMessage: "네이버/카카오 모두 검색 결과 없음", errorType: "platform_search" });
     return null;
   }
 
