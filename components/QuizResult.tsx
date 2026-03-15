@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import { AnalysisResult } from "@/lib/types";
-import GradeBadge from "./GradeBadge";
 import ScoreRing from "./ScoreRing";
 
 interface QuizResultProps {
@@ -70,12 +69,9 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
   return (
     <div className="pt-6 sm:pt-8 pb-10 sm:pb-12 safe-bottom">
 
-      {/* ━━━ 1. 등급 + 점수 ━━━ */}
-      <div className="text-center mb-4 sm:mb-5">
-        <GradeBadge grade={result.grade} animate />
-        <div className="mt-5 sm:mt-6">
-          <ScoreRing score={result.score} breakdown={result.score_breakdown} onAnimationDone={handleScoreAnimDone} />
-        </div>
+      {/* ━━━ 1. 등급 + 점수 (통합) ━━━ */}
+      <div className="mb-4 sm:mb-5">
+        <ScoreRing score={result.score} grade={result.grade} breakdown={result.score_breakdown} onAnimationDone={handleScoreAnimDone} />
       </div>
 
       {/* Title + Summary — 점수 카운트업 후 등장 */}
