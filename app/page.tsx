@@ -90,7 +90,7 @@ export default function Home() {
       {/* Responsive container */}
       <div className="w-full max-w-[540px] mx-auto px-8 sm:px-12 md:px-14 relative z-[1] safe-top">
         {phase === "quiz" && (
-          <div className="pt-10 sm:pt-14 md:pt-20 pb-10 sm:pb-14 safe-bottom">
+          <div className="pt-10 sm:pt-14 md:pt-20 pb-20 sm:pb-24 safe-bottom">
             {/* Header */}
             <div className="text-center mb-8 sm:mb-10">
               <div className="text-[40px] sm:text-[48px] mb-3 animate-float">🚀</div>
