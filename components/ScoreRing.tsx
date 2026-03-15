@@ -42,21 +42,22 @@ export default function ScoreRing({ score, breakdown }: ScoreRingProps) {
       </svg>
 
       {breakdown && (
-        <div className="mt-4 px-1">
+        <div className="mt-5 space-y-2.5 px-1">
           {DIMENSIONS.map((d) => {
             const val = breakdown[d.key] || 0;
-            const pct = (val / d.max) * 100;
+            const pct = Math.round((val / d.max) * 100);
             return (
-              <div key={d.key} className="flex items-center gap-2 mb-1.5">
-                <div className="w-[72px] text-[11px] text-white/40 text-right shrink-0">{d.label}</div>
-                <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+              <div key={d.key} className="flex items-center gap-2.5">
+                <div className="w-[76px] text-[11px] sm:text-[12px] text-white/45 text-right shrink-0 font-medium">{d.label}</div>
+                <div className="flex-1 h-2.5 rounded-full bg-white/[0.06] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-[1200ms] ease-out"
                     style={{ width: `${pct}%`, background: d.color }}
                   />
                 </div>
-                <div className="w-9 text-[11px] text-white/50 font-semibold text-right shrink-0">
-                  {val}<span className="text-[9px] text-white/25">/{d.max}</span>
+                <div className="w-[52px] text-[11px] sm:text-[12px] text-white/50 font-semibold text-right shrink-0">
+                  {val}<span className="text-[9px] sm:text-[10px] text-white/25">/{d.max}</span>
+                  <span className="text-[9px] text-white/20 ml-0.5">{pct}%</span>
                 </div>
               </div>
             );
