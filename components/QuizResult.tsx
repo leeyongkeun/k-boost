@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AnalysisResult } from "@/lib/types";
 import GradeBadge from "./GradeBadge";
 import ScoreRing from "./ScoreRing";
@@ -58,14 +58,13 @@ function SectionHeader({ title, sub }: { title: string; sub?: string }) {
 export default function QuizResult({ result, onRestart, resultId }: QuizResultProps) {
   const shareUrl = resultId ? `${window.location.origin}/result/${resultId}` : window.location.href;
 
-  // 섹션 순차 등장
+  // 바 애니메이션 완료 후 순차 등장
   const [showTitle, setShowTitle] = useState(false);
   const [showBody, setShowBody] = useState(false);
 
-  useEffect(() => {
-    const t1 = setTimeout(() => setShowTitle(true), 2800);
-    const t2 = setTimeout(() => setShowBody(true), 3400);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+  const handleScoreAnimDone = useCallback(() => {
+    setTimeout(() => setShowTitle(true), 200);
+    setTimeout(() => setShowBody(true), 700);
   }, []);
 
   return (
@@ -75,7 +74,7 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
       <div className="text-center mb-4 sm:mb-5">
         <GradeBadge grade={result.grade} animate />
         <div className="mt-5 sm:mt-6">
-          <ScoreRing score={result.score} breakdown={result.score_breakdown} />
+          <ScoreRing score={result.score} breakdown={result.score_breakdown} onAnimationDone={handleScoreAnimDone} />
         </div>
       </div>
 

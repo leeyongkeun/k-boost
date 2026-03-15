@@ -15,6 +15,7 @@ const DIMENSIONS = [
 interface ScoreRingProps {
   score: number;
   breakdown?: ScoreBreakdown;
+  onAnimationDone?: () => void;
 }
 
 function useCountUp(target: number, duration: number, delay: number): number {
@@ -27,7 +28,6 @@ function useCountUp(target: number, duration: number, delay: number): number {
       const animate = (now: number) => {
         const elapsed = now - start;
         const progress = Math.min(elapsed / duration, 1);
-        // ease-out cubic
         const eased = 1 - Math.pow(1 - progress, 3);
         setValue(Math.round(target * eased));
         if (progress < 1) {
@@ -46,20 +46,22 @@ function useCountUp(target: number, duration: number, delay: number): number {
   return value;
 }
 
-export default function ScoreRing({ score, breakdown }: ScoreRingProps) {
+export default function ScoreRing({ score, breakdown, onAnimationDone }: ScoreRingProps) {
   const r = 58;
   const circ = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
 
-  const displayScore = useCountUp(score, 1600, 600);
+  const displayScore = useCountUp(score, 1400, 500);
   const [ringReady, setRingReady] = useState(false);
   const [barsReady, setBarsReady] = useState(false);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setRingReady(true), 500);
-    const t2 = setTimeout(() => setBarsReady(true), 1400);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
+    const t1 = setTimeout(() => setRingReady(true), 400);
+    const t2 = setTimeout(() => setBarsReady(true), 900);
+    // 바 애니메이션 완료 시점 콜백
+    const t3 = setTimeout(() => onAnimationDone?.(), 2200);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [onAnimationDone]);
 
   return (
     <div className="text-center">
@@ -72,13 +74,13 @@ export default function ScoreRing({ score, breakdown }: ScoreRingProps) {
         <svg width="160" height="160" className="block mx-auto relative">
           {/* 배경 링 */}
           <circle cx="80" cy="80" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
-          {/* 점수 링 - CSS 애니메이션 */}
+          {/* 점수 링 */}
           <circle
             cx="80" cy="80" r={r} fill="none" stroke="url(#scoreGrad)" strokeWidth="10" strokeLinecap="round"
             strokeDasharray={circ}
             strokeDashoffset={ringReady ? offset : circ}
             transform="rotate(-90 80 80)"
-            style={{ transition: "stroke-dashoffset 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)" }}
+            style={{ transition: "stroke-dashoffset 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)" }}
           />
           <defs>
             <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -87,11 +89,11 @@ export default function ScoreRing({ score, breakdown }: ScoreRingProps) {
               <stop offset="100%" stopColor="#FFD700" />
             </linearGradient>
           </defs>
-          {/* 카운트업 숫자 */}
-          <text x="80" y="73" textAnchor="middle" fill="#fff" fontSize="40" fontWeight="900" className="font-outfit">
+          {/* 점수 숫자 + "점" */}
+          <text x="80" y="78" textAnchor="middle" fill="#fff" fontSize="42" fontWeight="900" className="font-outfit">
             {displayScore}
           </text>
-          <text x="80" y="97" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="12">/ 100점</text>
+          <text x="80" y="100" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="13" fontWeight="600">점</text>
         </svg>
       </div>
 
@@ -101,7 +103,7 @@ export default function ScoreRing({ score, breakdown }: ScoreRingProps) {
           {DIMENSIONS.map((d, i) => {
             const val = breakdown[d.key] || 0;
             const pct = Math.round((val / d.max) * 100);
-            const delay = 1600 + i * 120;
+            const delayMs = i * 100;
             return (
               <div
                 key={d.key}
@@ -109,7 +111,7 @@ export default function ScoreRing({ score, breakdown }: ScoreRingProps) {
                 style={{
                   opacity: barsReady ? 1 : 0,
                   transform: barsReady ? "translateX(0)" : "translateX(-12px)",
-                  transition: `opacity 0.4s ease ${delay}ms, transform 0.4s ease ${delay}ms`,
+                  transition: `opacity 0.4s ease ${delayMs}ms, transform 0.4s ease ${delayMs}ms`,
                 }}
               >
                 <div className="w-[76px] text-[11px] sm:text-[12px] text-white/45 text-right shrink-0 font-medium">{d.label}</div>
@@ -119,13 +121,12 @@ export default function ScoreRing({ score, breakdown }: ScoreRingProps) {
                     style={{
                       width: barsReady ? `${pct}%` : "0%",
                       background: d.color,
-                      transition: `width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay + 100}ms`,
+                      transition: `width 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delayMs + 100}ms`,
                     }}
                   />
                 </div>
-                <div className="w-[52px] text-[11px] sm:text-[12px] text-white/50 font-semibold text-right shrink-0">
+                <div className="w-[46px] text-[11px] sm:text-[12px] text-white/50 font-semibold text-right shrink-0">
                   {val}<span className="text-[9px] sm:text-[10px] text-white/25">/{d.max}</span>
-                  <span className="text-[9px] text-white/20 ml-0.5">{pct}%</span>
                 </div>
               </div>
             );
