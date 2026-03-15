@@ -124,103 +124,132 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
         </>
       )}
 
-      {/* ━━━ 3. 진단 상세 (플랫폼 + 핵심 지표) ━━━ */}
+      {/* ━━━ 3. 진단 상세 ━━━ */}
       <SectionHeader title="진단 상세" sub="왜 이 점수인지 알아보세요" />
 
-      {/* Platform Analysis — 한 줄 요약형 */}
-      {result.platforms && result.platforms.length > 0 && (
-        <div className="p-4 sm:p-5 rounded-2xl mb-3 bg-white/[0.03] border border-white/[0.06]">
-          <div className="text-[12px] sm:text-[13px] font-bold text-white/60 mb-3 sm:mb-3.5">플랫폼 등록 현황</div>
+      {/* 플랫폼별 통합 카드 (등록 현황 + 지표 설명 합침) */}
+      {result.platforms && result.platforms.length > 0 && (() => {
+        // 플랫폼명으로 매칭되는 key_metric 찾기
+        const PLATFORM_METRIC_KEYWORDS: Record<string, string[]> = {
+          "네이버 지도": ["네이버"],
+          "카카오맵": ["카카오"],
+          "Google Maps": ["google", "Google", "구글"],
+        };
+        const matchedLabels = new Set<string>();
+        const findMetric = (platformName: string) => {
+          const keywords = PLATFORM_METRIC_KEYWORDS[platformName] || [];
+          const metric = (result.key_metrics || []).find((m) =>
+            keywords.some((kw) => m.label.toLowerCase().includes(kw.toLowerCase()))
+          );
+          if (metric) matchedLabels.add(metric.label);
+          return metric;
+        };
+        // 플랫폼에 매칭 안 된 나머지 지표
+        const remainingMetrics = (result.key_metrics || []).filter((m) => {
+          // 먼저 모든 플랫폼 매칭 수행
+          result.platforms.forEach((p) => findMetric(p.name));
+          return !matchedLabels.has(m.label);
+        });
+
+        return (
           <div className="space-y-2 sm:space-y-2.5">
             {result.platforms.map((p) => {
               const icon = PLATFORM_ICONS[p.name];
               const link = getPlatformLink(p, result.store_name);
+              const metric = findMetric(p.name);
+              const s = metric ? STATUS_STYLES[metric.status] : null;
+
               return (
-                <div key={p.name} className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  {/* 아이콘 */}
-                  {icon ? (
-                    <img src={icon} alt={p.name} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0" />
-                  ) : (
-                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0 flex items-center justify-center ${p.registered ? "bg-emerald-400/10" : "bg-red-400/10"}`}>
-                      <div className={`w-2 h-2 rounded-full ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
+                <div key={p.name} className={`p-3 sm:p-3.5 rounded-2xl border ${s ? `${s.bg} ${s.border}` : "bg-white/[0.03] border-white/[0.06]"}`}>
+                  {/* 상단: 아이콘 + 이름 + 뱃지 */}
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    {icon ? (
+                      <img src={icon} alt={p.name} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0" />
+                    ) : (
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0 flex items-center justify-center bg-white/[0.04]">
+                        <div className={`w-2 h-2 rounded-full ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">{p.name}</span>
+                        {link && (
+                          <a href={link} target="_blank" rel="noopener noreferrer"
+                            className="text-[10px] text-purple-400/50 hover:text-purple-300 transition-colors no-underline">→</a>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {p.registered ? (
+                        <>
+                          {p.score !== undefined && p.score > 0 && (
+                            <span className="text-yellow-400 text-[11px] sm:text-[12px] font-bold">⭐{p.score.toFixed(1)}</span>
+                          )}
+                          {p.reviewCount !== undefined && p.reviewCount > 0 && (
+                            <span className="text-white/40 text-[10px] sm:text-[11px]">{p.reviewCount}건</span>
+                          )}
+                          {p.hasEnglish && (
+                            <span className="text-[9px] sm:text-[10px] font-bold text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">EN</span>
+                          )}
+                          <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">등록</span>
+                        </>
+                      ) : (
+                        <span className="text-[9px] sm:text-[10px] font-bold text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">미등록</span>
+                      )}
+                    </div>
+                  </div>
+                  {/* 하단: 매칭된 지표 설명 */}
+                  {metric && (
+                    <div className="mt-2 ml-[38px] sm:ml-[44px] text-[11px] sm:text-[12px] text-white/40 leading-[1.6]">
+                      {metric.detail}
                     </div>
                   )}
-                  {/* 이름 + 링크 */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] sm:text-[14px] text-white/80 font-semibold leading-tight">{p.name}</div>
-                    {link && (
-                      <a href={link} target="_blank" rel="noopener noreferrer"
-                        className="text-[10px] sm:text-[11px] text-purple-400/60 hover:text-purple-300 transition-colors no-underline">
-                        바로가기 →
-                      </a>
-                    )}
-                  </div>
-                  {/* 오른쪽: 뱃지 모음 */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {p.registered ? (
-                      <>
-                        {p.score !== undefined && p.score > 0 && (
-                          <span className="text-yellow-400 text-[11px] sm:text-[12px] font-bold">⭐{p.score.toFixed(1)}</span>
-                        )}
-                        {p.reviewCount !== undefined && p.reviewCount > 0 && (
-                          <span className="text-white/40 text-[10px] sm:text-[11px]">{p.reviewCount}건</span>
-                        )}
-                        {p.hasEnglish && (
-                          <span className="text-[9px] sm:text-[10px] font-bold text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">EN</span>
-                        )}
-                        <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">등록</span>
-                      </>
-                    ) : (
-                      <span className="text-[9px] sm:text-[10px] font-bold text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">미등록</span>
-                    )}
-                  </div>
                 </div>
               );
             })}
 
             {/* Instagram */}
             {result.instagram_url && (
-              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                <img src="/icons/instagram.svg" alt="Instagram" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] sm:text-[14px] text-white/80 font-semibold">Instagram</div>
-                  <a href={result.instagram_url} target="_blank" rel="noopener noreferrer"
-                    className="text-[10px] sm:text-[11px] text-purple-400/60 hover:text-purple-300 transition-colors no-underline">
-                    바로가기 →
-                  </a>
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <img src="/icons/instagram.svg" alt="Instagram" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">Instagram</span>
+                      <a href={result.instagram_url} target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] text-purple-400/50 hover:text-purple-300 transition-colors no-underline">→</a>
+                    </div>
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">연결됨</span>
                 </div>
-                <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">연결됨</span>
+              </div>
+            )}
+
+            {/* 플랫폼에 매칭 안 된 나머지 지표 (외국어 지원, 온라인 존재감 등) */}
+            {remainingMetrics.length > 0 && (
+              <div className="mt-1 space-y-2 sm:space-y-2.5">
+                {remainingMetrics.map((metric, i) => {
+                  const s = STATUS_STYLES[metric.status];
+                  return (
+                    <div key={i} className={`p-3 sm:p-3.5 rounded-2xl ${s.bg} border ${s.border}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-1.5 h-1.5 rounded-full ${s.dot} shrink-0`} />
+                          <span className="text-[12px] sm:text-[13px] text-white/55 font-semibold">{metric.label}</span>
+                        </div>
+                        <div className={`text-[18px] sm:text-[22px] font-black font-outfit leading-none ${s.text}`}>
+                          {metric.value}
+                        </div>
+                      </div>
+                      <div className="text-[11px] sm:text-[12px] text-white/40 leading-[1.6] mt-1.5 pl-3.5">{metric.detail}</div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Key Metrics — 카드 리스트 */}
-      {result.key_metrics && result.key_metrics.length > 0 && (
-        <div className="space-y-2 sm:space-y-2.5">
-          {result.key_metrics.map((metric, i) => {
-            const s = STATUS_STYLES[metric.status];
-            return (
-              <div
-                key={i}
-                className={`p-3.5 sm:p-4 rounded-2xl ${s.bg} border ${s.border}`}
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${s.dot} shrink-0`} />
-                    <span className="text-[12px] sm:text-[13px] text-white/55 font-semibold">{metric.label}</span>
-                  </div>
-                  <div className={`text-[18px] sm:text-[22px] font-black font-outfit leading-none ${s.text}`}>
-                    {metric.value}
-                  </div>
-                </div>
-                <div className="text-[11px] sm:text-[12px] text-white/40 leading-[1.6] pl-3.5">{metric.detail}</div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        );
+      })()}
 
       {/* ━━━ 4. 개선 방향 ━━━ */}
       <SectionHeader title="개선 방향" sub="어떻게 점수를 올릴 수 있을까요" />
@@ -250,13 +279,27 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
             <div className="text-[10px] sm:text-[11px] text-yellow-400/40">가장 빠르게 효과를 볼 수 있는 액션</div>
           </div>
         </div>
-        <div className="text-[14px] sm:text-[16px] font-semibold text-white leading-[1.7] relative z-[1]">{result.action_plan}</div>
+        <ul className="space-y-1.5 relative z-[1]">
+          {result.action_plan.split(/[.。]\s*/).filter(Boolean).map((item, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="text-yellow-400/60 mt-1 shrink-0">•</span>
+              <span className="text-[13px] sm:text-[15px] font-semibold text-white leading-[1.7]">{item.trim()}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Potential */}
-      <div className="mt-3 py-4 sm:py-5 px-4 sm:px-5 rounded-2xl bg-white/[0.03] border border-white/[0.05] text-center">
-        <div className="text-[11px] sm:text-[12px] text-white/35 mb-1.5 sm:mb-2 font-medium">3개월 후 기대 효과</div>
-        <div className="text-[13px] sm:text-[14px] font-semibold text-white/75 leading-[1.7]">{result.potential}</div>
+      <div className="mt-3 p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/[0.05]">
+        <div className="text-[11px] sm:text-[12px] text-white/35 mb-2.5 font-medium text-center">3개월 후 기대 효과</div>
+        <ul className="space-y-1.5">
+          {result.potential.split(/[,，]\s*/).filter(Boolean).map((item, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="text-purple-400/50 mt-0.5 shrink-0">•</span>
+              <span className="text-[13px] sm:text-[14px] font-semibold text-white/75 leading-[1.6]">{item.trim()}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       </div>{/* showBody wrapper 닫기 */}
