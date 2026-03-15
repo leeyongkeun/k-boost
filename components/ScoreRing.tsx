@@ -13,11 +13,11 @@ const DIMENSIONS = [
 ];
 
 const GRADE_CONFIG = {
-  S: { bg: "from-yellow-400 to-orange-500", text: "text-gray-900", glow: "shadow-[0_0_50px_rgba(255,215,0,0.5)]", label: "K-글로벌 황금 매장", pct: "상위 5%" },
-  A: { bg: "from-purple-600 to-purple-500", text: "text-white", glow: "shadow-[0_0_50px_rgba(124,58,237,0.4)]", label: "K-글로벌 유망 매장", pct: "상위 20%" },
-  B: { bg: "from-blue-500 to-blue-400", text: "text-white", glow: "shadow-[0_0_40px_rgba(59,130,246,0.3)]", label: "K-글로벌 가능 매장", pct: "상위 50%" },
-  C: { bg: "from-gray-500 to-gray-400", text: "text-white", glow: "shadow-[0_0_30px_rgba(107,114,128,0.3)]", label: "K-글로벌 준비 단계", pct: "" },
-  D: { bg: "from-gray-600 to-gray-500", text: "text-white", glow: "shadow-[0_0_30px_rgba(75,85,99,0.3)]", label: "재검토 필요", pct: "" },
+  S: { badge: "from-yellow-400 to-orange-500", badgeText: "text-gray-900", label: "K-글로벌 황금 매장", pct: "상위 5%" },
+  A: { badge: "from-purple-600 to-purple-500", badgeText: "text-white", label: "K-글로벌 유망 매장", pct: "상위 20%" },
+  B: { badge: "from-blue-500 to-blue-400", badgeText: "text-white", label: "K-글로벌 가능 매장", pct: "상위 50%" },
+  C: { badge: "from-gray-500 to-gray-400", badgeText: "text-white", label: "K-글로벌 준비 단계", pct: "" },
+  D: { badge: "from-gray-600 to-gray-500", badgeText: "text-white", label: "재검토 필요", pct: "" },
 };
 
 interface ScoreRingProps {
@@ -56,94 +56,73 @@ function useCountUp(target: number, duration: number, delay: number): number {
 }
 
 export default function ScoreRing({ score, grade, breakdown, onAnimationDone }: ScoreRingProps) {
-  const r = 58;
+  const r = 62;
   const circ = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
   const c = GRADE_CONFIG[grade] || GRADE_CONFIG.C;
 
-  const displayScore = useCountUp(score, 1400, 500);
-  const [showGrade, setShowGrade] = useState(false);
+  const displayScore = useCountUp(score, 1400, 400);
   const [ringReady, setRingReady] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
+  const [showLabel, setShowLabel] = useState(false);
   const [barsReady, setBarsReady] = useState(false);
 
   const stableCallback = useCallback(() => onAnimationDone?.(), [onAnimationDone]);
 
   useEffect(() => {
-    const t0 = setTimeout(() => setShowGrade(true), 200);
-    const t1 = setTimeout(() => setRingReady(true), 400);
-    const t2 = setTimeout(() => setShowInfo(true), 900);
-    const t3 = setTimeout(() => setBarsReady(true), 1100);
-    const t4 = setTimeout(() => stableCallback(), 2200);
-    return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    const t1 = setTimeout(() => setRingReady(true), 300);
+    const t2 = setTimeout(() => setShowLabel(true), 800);
+    const t3 = setTimeout(() => setBarsReady(true), 1000);
+    const t4 = setTimeout(() => stableCallback(), 2100);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, [stableCallback]);
 
   return (
     <div className="text-center">
-      {/* 등급 + 점수 통합 영역 */}
-      <div className="flex items-center justify-center gap-5 sm:gap-6">
-        {/* 등급 배지 */}
-        <div className="relative">
-          {showGrade && (
-            <div className={`absolute inset-[-14px] rounded-full bg-gradient-to-br ${c.bg} opacity-20 blur-2xl animate-glow-pulse`} />
-          )}
-          <div
-            className={`
-              w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] rounded-full bg-gradient-to-br ${c.bg} ${c.text} ${c.glow}
-              flex items-center justify-center text-[38px] sm:text-[42px] font-black font-outfit
-              tracking-tight relative
-              ${showGrade ? "animate-grade-enter" : "opacity-0 scale-0"}
-            `}
-          >
-            {grade}
-          </div>
-        </div>
-
-        {/* 점수 링 */}
-        <div className={`relative transition-opacity duration-500 ${ringReady ? "opacity-100" : "opacity-0"}`}>
-          {ringReady && score >= 65 && (
-            <div className="absolute inset-[-8px] rounded-full bg-gradient-to-br from-purple-500/15 to-pink-500/15 blur-xl animate-glow-pulse" />
-          )}
-          <svg width="130" height="130" className="block relative">
-            <circle cx="65" cy="65" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
-            <circle
-              cx="65" cy="65" r={r} fill="none" stroke="url(#scoreGrad)" strokeWidth="8" strokeLinecap="round"
-              strokeDasharray={circ}
-              strokeDashoffset={ringReady ? offset : circ}
-              transform="rotate(-90 65 65)"
-              style={{ transition: "stroke-dashoffset 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)" }}
-            />
-            <defs>
-              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#7C3AED" />
-                <stop offset="50%" stopColor="#EC4899" />
-                <stop offset="100%" stopColor="#FFD700" />
-              </linearGradient>
-            </defs>
-            <text x="65" y="72" textAnchor="middle" fill="#fff" fontSize="36" fontWeight="900" className="font-outfit">
-              {displayScore}점
-            </text>
-          </svg>
-        </div>
+      {/* 점수 링 — 메인 */}
+      <div className={`relative inline-block transition-opacity duration-500 ${ringReady ? "opacity-100" : "opacity-0"}`}>
+        {ringReady && score >= 65 && (
+          <div className="absolute inset-[-12px] rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 blur-xl animate-glow-pulse" />
+        )}
+        <svg width="170" height="170" className="block mx-auto relative">
+          <circle cx="85" cy="85" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+          <circle
+            cx="85" cy="85" r={r} fill="none" stroke="url(#scoreGrad)" strokeWidth="10" strokeLinecap="round"
+            strokeDasharray={circ}
+            strokeDashoffset={ringReady ? offset : circ}
+            transform="rotate(-90 85 85)"
+            style={{ transition: "stroke-dashoffset 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)" }}
+          />
+          <defs>
+            <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#7C3AED" />
+              <stop offset="50%" stopColor="#EC4899" />
+              <stop offset="100%" stopColor="#FFD700" />
+            </linearGradient>
+          </defs>
+          <text x="85" y="92" textAnchor="middle" fill="#fff" fontSize="46" fontWeight="900" className="font-outfit">
+            {displayScore}점
+          </text>
+        </svg>
       </div>
 
-      {/* 라벨 + 상위 % */}
+      {/* 등급 뱃지 + 라벨 */}
       <div
-        className="mt-3"
+        className="mt-2.5"
         style={{
-          opacity: showInfo ? 1 : 0,
-          transform: showInfo ? "translateY(0)" : "translateY(8px)",
+          opacity: showLabel ? 1 : 0,
+          transform: showLabel ? "translateY(0)" : "translateY(8px)",
           transition: "opacity 0.5s ease, transform 0.5s ease",
         }}
       >
-        <div className="text-[13px] sm:text-[14px] text-white/50 font-semibold tracking-wide">
-          {c.label}
+        <div className="flex items-center justify-center gap-2">
+          <span className={`inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br ${c.badge} ${c.badgeText} text-[12px] sm:text-[13px] font-black font-outfit`}>
+            {grade}
+          </span>
+          <span className="text-[14px] sm:text-[15px] text-white/60 font-bold">{c.label}</span>
+          {c.pct && (
+            <span className="text-[10px] sm:text-[11px] text-yellow-400/80 font-semibold bg-yellow-400/10 px-1.5 py-0.5 rounded">{c.pct}</span>
+          )}
         </div>
-        {c.pct && (
-          <div className="inline-block mt-1.5 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-[11px] text-yellow-400 font-semibold">
-            {c.pct}
-          </div>
-        )}
       </div>
 
       {/* Breakdown 바 */}
