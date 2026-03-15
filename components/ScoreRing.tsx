@@ -89,11 +89,9 @@ export default function ScoreRing({ score, breakdown, onAnimationDone }: ScoreRi
               <stop offset="100%" stopColor="#FFD700" />
             </linearGradient>
           </defs>
-          {/* 점수 숫자 + "점" */}
-          <text x="80" y="78" textAnchor="middle" fill="#fff" fontSize="42" fontWeight="900" className="font-outfit">
-            {displayScore}
+          <text x="80" y="88" textAnchor="middle" fill="#fff" fontSize="42" fontWeight="900" className="font-outfit">
+            {displayScore}점
           </text>
-          <text x="80" y="100" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="13" fontWeight="600">점</text>
         </svg>
       </div>
 
