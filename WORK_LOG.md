@@ -1,12 +1,47 @@
 # K-BOOST 작업 내역
 
+## 2026-03-15 (4차)
+
+### 결과 화면 UI 강화 — 매장 프로필 + 플랫폼 상세 + 아이콘
+- **매장 프로필 카드** 추가 (결과 상단)
+  - 매장명, 업종, 주소, 전화번호 표시
+  - 실제 데이터 기반 신뢰감 강화
+- **플랫폼 카드 개선** (한 줄 → 카드형)
+  - 평점, 리뷰 수, 사진, 영어 지원 태그 표시
+  - 카테고리 정보 표시 (네이버/카카오)
+- **플랫폼 아이콘** SVG 적용 (`public/icons/`)
+  - 네이버 지도, 카카오맵, Google Maps, Instagram 4종
+- **플랫폼 링크 안전 처리**
+  - 네이버 `link`가 인스타그램이면 → 네이버 지도 검색 URL로 대체
+  - 인스타 링크는 별도 IG 카드로 분리 표시
+  - Google Maps는 항상 검색 URL 생성
+- **인스타그램 링크** 자동 감지 및 표시
+  - 네이버 API link가 instagram.com이면 별도 Instagram 카드 노출
+- 타입 확장: `PlatformInfo`에 `link`, `category` / `AnalysisResult`에 `store_address`, `store_phone`, `instagram_url`
+
+---
+
+## 2026-03-15 (3차)
+
+### 타임아웃 20% 증가 + 에러 로깅
+- **타임아웃 증가**
+  - 개별 API: 5s → 6s / 플랫폼 검색: 12s → 14.4s / 글로벌: 15s → 18s
+  - 상수화: `API_TIMEOUT_MS`, `PLATFORM_SEARCH_TIMEOUT_MS`, `GLOBAL_ANALYSIS_TIMEOUT_MS`
+- **에러 로깅** (`lib/error-logger.ts` 신규)
+  - Supabase `error_logs` 테이블에 자동 기록 (fire-and-forget)
+  - 에러 유형: `platform_search` / `claude_analysis` / `timeout` / `unknown`
+  - 검색 키워드 + 에러 메시지 저장
+  - 호출 위치: platform-search.ts, route.ts, claude.ts
+
+---
+
 ## 2026-03-15 (2차)
 
 ### 플랫폼 검색 + Claude 분석 파이프라인 완성
 - **3개 플랫폼 실시간 검색** (`lib/platform-search.ts` 신규)
-  - 네이버 지도 API (5초 타임아웃)
-  - 카카오맵 API (5초 타임아웃)
-  - Google Maps Places API v1 (5초 타임아웃)
+  - 네이버 지도 API (6초 타임아웃)
+  - 카카오맵 API (6초 타임아웃)
+  - Google Maps Places API v1 (6초 타임아웃)
   - 2단계 병렬 구조: (네이버+카카오 동시) → Google Maps 순차
 - **Claude AI 분석** (`lib/claude.ts` 신규)
   - Claude Haiku로 플랫폼 데이터 기반 6차원 분석
