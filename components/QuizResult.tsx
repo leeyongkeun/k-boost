@@ -36,31 +36,73 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
         <p className="text-[13px] sm:text-[14px] text-white/55 leading-[1.7] px-1">{result.summary}</p>
       </div>
 
+      {/* Store Profile Card */}
+      {(result.store_address || result.store_phone) && (
+        <div className="p-4 sm:p-5 rounded-2xl mb-2.5 sm:mb-3 bg-white/[0.04] border border-white/[0.08]">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-500/15 border border-purple-500/20 flex items-center justify-center text-[18px] sm:text-[20px] shrink-0">📍</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[15px] sm:text-[16px] font-bold text-white/90 mb-0.5">{result.store_name}</div>
+              <div className="text-[11px] sm:text-[12px] text-purple-300/70 font-medium mb-1.5">{result.business_type}</div>
+              {result.store_address && (
+                <div className="text-[12px] sm:text-[13px] text-white/45 leading-snug mb-0.5">{result.store_address}</div>
+              )}
+              {result.store_phone && (
+                <div className="text-[12px] sm:text-[13px] text-white/45">{result.store_phone}</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Platform Analysis */}
       {result.platforms && result.platforms.length > 0 && (
         <div className="p-4 sm:p-5 rounded-2xl mb-2.5 sm:mb-3 bg-white/[0.03] border border-white/[0.06]">
-          <div className="text-[12px] sm:text-[13px] font-bold text-white/60 mb-3 sm:mb-3.5">플랫폼 분석 현황</div>
-          <div className="space-y-1.5 sm:space-y-2.5">
+          <div className="text-[12px] sm:text-[13px] font-bold text-white/60 mb-3 sm:mb-3.5">플랫폼 등록 현황</div>
+          <div className="space-y-2.5 sm:space-y-3">
             {result.platforms.map((p) => (
-              <div key={p.name} className="flex items-center justify-between py-1.5 sm:py-2 border-b border-white/[0.04] last:border-b-0">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
-                  <span className="text-[12px] sm:text-[13px] text-white/70 font-medium">{p.name}</span>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-[12px]">
-                  {p.score && (
-                    <span className="text-white/50 font-semibold">{p.score.toFixed(1)}</span>
-                  )}
-                  {p.reviewCount !== undefined && p.reviewCount > 0 && (
-                    <span className="text-white/35">리뷰 {p.reviewCount}</span>
-                  )}
-                  {p.hasEnglish && (
-                    <span className="text-purple-400 text-[10px] sm:text-[11px] font-semibold bg-purple-400/10 px-1.5 py-0.5 rounded">EN</span>
-                  )}
+              <div key={p.name} className="p-3 sm:p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2 sm:gap-2.5">
+                    <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
+                    <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">{p.name}</span>
+                  </div>
                   {!p.registered && (
-                    <span className="text-red-400/70 text-[10px] sm:text-[11px] font-medium">미등록</span>
+                    <span className="text-red-400/70 text-[10px] sm:text-[11px] font-medium bg-red-400/10 px-2 py-0.5 rounded-full">미등록</span>
                   )}
                 </div>
+                {p.registered && (
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
+                    {p.score !== undefined && p.score > 0 && (
+                      <span className="text-yellow-400 text-[11px] sm:text-[12px] font-semibold bg-yellow-400/10 px-2 py-0.5 rounded-full">⭐ {p.score.toFixed(1)}</span>
+                    )}
+                    {p.reviewCount !== undefined && p.reviewCount > 0 && (
+                      <span className="text-white/50 text-[11px] sm:text-[12px] bg-white/[0.04] px-2 py-0.5 rounded-full">리뷰 {p.reviewCount}건</span>
+                    )}
+                    {p.hasPhotos && (
+                      <span className="text-white/40 text-[11px] sm:text-[12px] bg-white/[0.04] px-2 py-0.5 rounded-full">📷 사진</span>
+                    )}
+                    {p.hasEnglish && (
+                      <span className="text-purple-400 text-[10px] sm:text-[11px] font-semibold bg-purple-400/10 px-2 py-0.5 rounded-full">🌍 영어</span>
+                    )}
+                    {!p.hasEnglish && p.name === "Google Maps" && (
+                      <span className="text-white/25 text-[10px] sm:text-[11px] bg-white/[0.03] px-2 py-0.5 rounded-full">영어리뷰 없음</span>
+                    )}
+                    {p.category && (
+                      <span className="text-white/30 text-[10px] sm:text-[11px]">{p.category}</span>
+                    )}
+                  </div>
+                )}
+                {p.registered && p.link && (
+                  <a
+                    href={p.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 text-[11px] sm:text-[12px] text-purple-400/70 hover:text-purple-300 transition-colors no-underline"
+                  >
+                    {p.name}에서 보기 →
+                  </a>
+                )}
               </div>
             ))}
           </div>

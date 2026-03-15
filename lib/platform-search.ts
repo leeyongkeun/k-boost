@@ -285,6 +285,8 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
       reviewCount: 0,
       hasPhotos: !!naverResult,
       hasEnglish: false,
+      link: naverResult?.link || undefined,
+      category: naverResult?.category || undefined,
     },
     {
       name: "카카오맵",
@@ -292,6 +294,8 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
       reviewCount: 0,
       hasPhotos: !!kakaoResult,
       hasEnglish: false,
+      link: kakaoResult?.place_url || undefined,
+      category: kakaoResult?.category_name || undefined,
     },
     {
       name: "Google Maps",

@@ -31,6 +31,8 @@ export interface PlatformInfo {
   reviewCount?: number;
   hasPhotos?: boolean;
   hasEnglish?: boolean;
+  link?: string;
+  category?: string;
 }
 
 export interface KeyMetric {
@@ -46,6 +48,8 @@ export interface AnalysisResult {
   score_breakdown: ScoreBreakdown;
   store_name: string;
   business_type: string;
+  store_address?: string;
+  store_phone?: string;
   platforms: PlatformInfo[];
   title: string;
   summary: string;

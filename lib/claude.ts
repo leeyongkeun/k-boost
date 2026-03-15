@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { AnalysisResult, ScoreBreakdown, KeyMetric } from "./types";
+import { AnalysisResult, PlatformInfo, ScoreBreakdown, KeyMetric } from "./types";
 import { logError } from "./error-logger";
 
 const anthropic = new Anthropic({
@@ -12,13 +12,7 @@ interface AnalyzeWithDataInput {
   businessType: string;
   address: string;
   phone: string;
-  platforms: {
-    name: string;
-    registered: boolean;
-    score?: number;
-    reviewCount?: number;
-    hasEnglish?: boolean;
-  }[];
+  platforms: PlatformInfo[];
   naverCategory: string;
   kakaoCategory: string;
   foreignRatio: string;
@@ -193,6 +187,8 @@ ${platformSummary}
       score_breakdown: breakdown,
       store_name: input.storeName,
       business_type: input.businessType,
+      store_address: input.address || undefined,
+      store_phone: input.phone || undefined,
       platforms: input.platforms.map((p) => ({
         name: p.name,
         registered: p.registered,
@@ -200,6 +196,8 @@ ${platformSummary}
         reviewCount: p.reviewCount || 0,
         hasPhotos: p.registered,
         hasEnglish: p.hasEnglish || false,
+        link: p.link,
+        category: p.category,
       })),
       title: parsed.title,
       summary: parsed.summary,
