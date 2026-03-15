@@ -171,7 +171,7 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
                         <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">{p.name}</span>
                         {link && (
                           <a href={link} target="_blank" rel="noopener noreferrer"
-                            className="text-[10px] text-purple-400/50 hover:text-purple-300 transition-colors no-underline">→</a>
+                            className="text-purple-400/50 hover:text-purple-300 transition-colors no-underline inline-flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
                         )}
                       </div>
                     </div>
@@ -213,7 +213,7 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
                     <div className="flex items-center gap-1.5">
                       <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">Instagram</span>
                       <a href={result.instagram_url} target="_blank" rel="noopener noreferrer"
-                        className="text-[10px] text-purple-400/50 hover:text-purple-300 transition-colors no-underline">→</a>
+                        className="text-purple-400/50 hover:text-purple-300 transition-colors no-underline inline-flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
                     </div>
                   </div>
                   <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">연결됨</span>
