@@ -1,5 +1,25 @@
 # K-BOOST 작업 내역
 
+## 2026-03-15 (5차)
+
+### API 응답 DB 저장 (캐시 + 데이터 축적)
+- **`search_results` 테이블 설계** (`scripts/create-search-results-table.sql`)
+  - 검색 1회 = 1행 통합 구조 (네이버/카카오/Google 분리 X)
+  - 정규화 컬럼 + Raw JSON(JSONB) 병행 → 쿼리 가능 + 향후 재추출 가능
+  - RLS 정책 (public insert/read) + 캐시 조회용 인덱스
+  - `created_at`은 KST(한국시간) 기준 저장
+- **Raw API 응답 반환** (`lib/platform-search.ts` 수정)
+  - `PlatformSearchResult`에 `naverRaw`, `kakaoRaw`, `googleRaw` 필드 추가
+  - `searchGoogleMaps()` 반환에 `raw: GooglePlace` 추가
+- **DB 저장 + 캐시 조회** (`lib/save-search-result.ts` 신규)
+  - `saveSearchResult()`: fire-and-forget로 검색 결과 저장
+  - `getCachedResult()`: 같은 keyword 7일 이내 캐시 히트 시 API 호출 스킵
+- **분석 라우트 연동** (`app/api/analyze/route.ts` 수정)
+  - API 모드에서 캐시 조회 우선 → 히트 시 플랫폼 API 호출 생략
+  - 캐시 미스 시 분석 완료 후 grade/score 포함 DB 저장
+
+---
+
 ## 2026-03-15 (4차)
 
 ### 결과 화면 UI 강화 — 매장 프로필 + 플랫폼 상세 + 아이콘
