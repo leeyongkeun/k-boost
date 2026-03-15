@@ -10,10 +10,10 @@ interface QuizResultProps {
   resultId?: string | null;
 }
 
-const PLATFORM_ICONS: Record<string, { letter: string; bg: string; text: string }> = {
-  "네이버 지도": { letter: "N", bg: "bg-[#03C75A]/20", text: "text-[#03C75A]" },
-  "카카오맵": { letter: "K", bg: "bg-[#FEE500]/20", text: "text-[#FEE500]" },
-  "Google Maps": { letter: "G", bg: "bg-[#EA4335]/20", text: "text-[#EA4335]" },
+const PLATFORM_ICONS: Record<string, string> = {
+  "네이버 지도": "/icons/naver-map.svg",
+  "카카오맵": "/icons/kakao-map.svg",
+  "Google Maps": "/icons/google-maps.svg",
 };
 
 function getPlatformLink(p: { name: string; link?: string; registered: boolean }, storeName: string): string | null {
@@ -91,9 +91,7 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2 sm:gap-2.5">
                       {icon ? (
-                        <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg ${icon.bg} flex items-center justify-center shrink-0`}>
-                          <span className={`text-[12px] sm:text-[13px] font-black ${icon.text}`}>{icon.letter}</span>
-                        </div>
+                        <img src={icon} alt={p.name} className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shrink-0" />
                       ) : (
                         <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
                       )}
@@ -144,9 +142,7 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
           {result.instagram_url && (
             <div className="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
               <div className="flex items-center gap-2 sm:gap-2.5">
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-[#833AB4]/20 via-[#E1306C]/20 to-[#F77737]/20 flex items-center justify-center shrink-0">
-                  <span className="text-[12px] sm:text-[13px] font-black bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#F77737] bg-clip-text text-transparent">IG</span>
-                </div>
+                <img src="/icons/instagram.svg" alt="Instagram" className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shrink-0" />
                 <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">Instagram</span>
               </div>
               <a
