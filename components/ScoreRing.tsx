@@ -99,7 +99,7 @@ export default function ScoreRing({ score, grade, breakdown, onAnimationDone }: 
               <stop offset="100%" stopColor="#FFD700" />
             </linearGradient>
           </defs>
-          <text x="85" y="92" textAnchor="middle" fill="#fff" fontSize="46" fontWeight="900" className="font-outfit">
+          <text x="85" y="85" textAnchor="middle" dominantBaseline="central" fill="#fff" fontSize="46" fontWeight="900" className="font-outfit">
             {displayScore}점
           </text>
         </svg>
