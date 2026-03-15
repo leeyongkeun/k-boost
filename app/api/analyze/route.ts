@@ -63,14 +63,24 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // --- 모드 1: 네이버/카카오 API + Gemini 분석 (가장 저렴 + 정확) ---
+    // --- 모드 1: 네이버/카카오 API + Claude 분석 (가장 저렴 + 정확) ---
     if (ANALYZE_MODE === "api") {
       const { searchPlatforms } = await import("@/lib/platform-search");
       const { analyzeWithPlatformData } = await import("@/lib/claude");
+      const { saveSearchResult, getCachedResult } = await import("@/lib/save-search-result");
 
       console.log("[analyze] API mode - searching platforms for:", storeName);
 
-      const platformData = await withGlobalTimeout(searchPlatforms(storeInfo), PLATFORM_SEARCH_TIMEOUT_MS);
+      // 캐시 조회 (7일 이내 같은 키워드)
+      let platformData = await getCachedResult(storeInfo);
+      let fromCache = false;
+
+      if (platformData) {
+        fromCache = true;
+        console.log("[analyze] Cache HIT - skipping API calls, saved", Date.now() - startTime, "ms");
+      } else {
+        platformData = await withGlobalTimeout(searchPlatforms(storeInfo), PLATFORM_SEARCH_TIMEOUT_MS);
+      }
 
       if (!platformData) {
         logError({ searchKeyword: storeInfo, errorMessage: "플랫폼 검색 결과 없음", errorType: "platform_search" });
@@ -109,6 +119,18 @@ export async function POST(request: NextRequest) {
           { error: "매장 분석에 실패했습니다. 다시 시도해주세요." },
           { status: 500 }
         );
+      }
+
+      // 캐시가 아닌 경우에만 DB에 저장 (fire-and-forget)
+      if (!fromCache) {
+        saveSearchResult({
+          searchKeyword: storeInfo,
+          foreignRatio,
+          changeWillingness,
+          platformData,
+          grade: result.grade,
+          score: result.score,
+        });
       }
 
       return NextResponse.json(result);

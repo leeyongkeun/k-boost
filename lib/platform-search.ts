@@ -49,6 +49,10 @@ export interface PlatformSearchResult {
   naverCategory: string;
   kakaoCategory: string;
   instagramUrl?: string;
+  // Raw API 응답 (DB 저장/캐시용)
+  naverRaw: NaverItem | null;
+  kakaoRaw: KakaoDocument | null;
+  googleRaw: GooglePlace | null;
 }
 
 // --- 타임아웃 유틸 ---
@@ -151,6 +155,7 @@ async function searchGoogleMaps(query: string): Promise<{
   reviewCount: number;
   hasPhotos: boolean;
   hasEnglish: boolean;
+  raw: GooglePlace | null;
 } | null> {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
@@ -188,7 +193,7 @@ async function searchGoogleMaps(query: string): Promise<{
 
     const data = await res.json();
     if (!data.places || data.places.length === 0) {
-      return { registered: false, reviewCount: 0, hasPhotos: false, hasEnglish: false };
+      return { registered: false, reviewCount: 0, hasPhotos: false, hasEnglish: false, raw: null };
     }
 
     const place: GooglePlace = data.places[0];
@@ -203,6 +208,7 @@ async function searchGoogleMaps(query: string): Promise<{
       reviewCount: place.userRatingCount || 0,
       hasPhotos: (place.photos || []).length > 0,
       hasEnglish: hasEnglishReview,
+      raw: place,
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -323,5 +329,8 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
     naverCategory,
     kakaoCategory,
     instagramUrl,
+    naverRaw: naverResult,
+    kakaoRaw: kakaoResult,
+    googleRaw: googleResult?.raw || null,
   };
 }
