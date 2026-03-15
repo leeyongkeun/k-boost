@@ -7,6 +7,7 @@ import ScoreRing from "./ScoreRing";
 interface QuizResultProps {
   result: AnalysisResult;
   onRestart: () => void;
+  resultId?: string | null;
 }
 
 const STATUS_STYLES = {
@@ -15,7 +16,8 @@ const STATUS_STYLES = {
   critical: { bg: "bg-red-500/15", border: "border-red-500/25", text: "text-red-400" },
 };
 
-export default function QuizResult({ result, onRestart }: QuizResultProps) {
+export default function QuizResult({ result, onRestart, resultId }: QuizResultProps) {
+  const shareUrl = resultId ? `${window.location.origin}/result/${resultId}` : window.location.href;
   return (
     <div className="pt-6 sm:pt-8 pb-10 sm:pb-12 safe-bottom">
       {/* Grade + Score */}
@@ -123,10 +125,12 @@ export default function QuizResult({ result, onRestart }: QuizResultProps) {
               navigator.share({
                 title: `K-BOOST 분석 결과: ${result.grade}등급 (${result.score}점)`,
                 text: result.title,
-                url: window.location.href,
+                url: shareUrl,
               }).catch(() => {});
             } else {
-              alert("카카오톡 공유 API 연결 예정");
+              navigator.clipboard.writeText(shareUrl).then(() => {
+                alert("링크가 복사되었습니다!");
+              }).catch(() => {});
             }
           }}
           className="w-full py-3.5 sm:py-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/[0.06] text-yellow-400 text-[13px] sm:text-[14px] font-semibold cursor-pointer hover:bg-yellow-400/10 transition-colors active:scale-[0.98]"

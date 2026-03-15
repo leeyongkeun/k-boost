@@ -12,6 +12,7 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showValidation, setShowValidation] = useState(false);
+  const [resultId, setResultId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const allAnswered = QUESTIONS.every((q) => {
@@ -51,6 +52,16 @@ export default function Home() {
       setResult(data as AnalysisResult);
       setPhase("result");
       containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
+
+      // 결과 저장 (공유용 ID 생성)
+      fetch("/api/result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ result: data }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d.id) setResultId(d.id); })
+        .catch(() => {});
     } catch (e) {
       console.error(e);
       setError(e instanceof Error ? e.message : "분석 중 오류가 발생했습니다. 다시 시도해주세요.");
@@ -63,6 +74,7 @@ export default function Home() {
     setResult(null);
     setError(null);
     setShowValidation(false);
+    setResultId(null);
     setPhase("quiz");
   };
 
@@ -211,7 +223,7 @@ export default function Home() {
         {phase === "loading" && <QuizLoading />}
 
         {phase === "result" && result && (
-          <QuizResult result={result} onRestart={restart} />
+          <QuizResult result={result} onRestart={restart} resultId={resultId} />
         )}
       </div>
     </div>
