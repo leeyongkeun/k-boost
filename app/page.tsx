@@ -44,15 +44,16 @@ export default function Home() {
         body: JSON.stringify({ answers }),
       });
 
-      if (!res.ok) throw new Error("API 호출 실패");
+      const data = await res.json();
 
-      const data: AnalysisResult = await res.json();
-      setResult(data);
+      if (!res.ok) throw new Error(data.error || "API 호출 실패");
+
+      setResult(data as AnalysisResult);
       setPhase("result");
       containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
     } catch (e) {
       console.error(e);
-      setError("분석 중 오류가 발생했습니다. 다시 시도해주세요.");
+      setError(e instanceof Error ? e.message : "분석 중 오류가 발생했습니다. 다시 시도해주세요.");
       setPhase("quiz");
     }
   };
