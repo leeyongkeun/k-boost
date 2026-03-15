@@ -7,6 +7,10 @@
   --animate-float: float 3s ease-in-out infinite;
   --animate-pop-in: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   --animate-shimmer: shimmer 2s linear infinite;
+  --animate-grade-enter: gradeEnter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-glow-pulse: glowPulse 2s ease-in-out infinite;
+  --animate-fade-up: fadeUp 0.6s ease-out both;
+  --animate-ring-draw: ringDraw 1.8s ease-out both;
 }
 
 @keyframes popIn {
@@ -22,6 +26,28 @@
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes gradeEnter {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 20px rgba(124,58,237,0.3)); }
+  50% { filter: brightness(1.15) drop-shadow(0 0 40px rgba(124,58,237,0.6)); }
+}
+
+@keyframes fadeUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes ringDraw {
+  0% { stroke-dashoffset: var(--ring-circ); }
+  100% { stroke-dashoffset: var(--ring-offset); }
 }
 
 * {

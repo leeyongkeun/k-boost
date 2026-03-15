@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AnalysisResult } from "@/lib/types";
 import GradeBadge from "./GradeBadge";
 import ScoreRing from "./ScoreRing";
@@ -57,6 +58,16 @@ function SectionHeader({ title, sub }: { title: string; sub?: string }) {
 export default function QuizResult({ result, onRestart, resultId }: QuizResultProps) {
   const shareUrl = resultId ? `${window.location.origin}/result/${resultId}` : window.location.href;
 
+  // 섹션 순차 등장
+  const [showTitle, setShowTitle] = useState(false);
+  const [showBody, setShowBody] = useState(false);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setShowTitle(true), 2800);
+    const t2 = setTimeout(() => setShowBody(true), 3400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
   return (
     <div className="pt-6 sm:pt-8 pb-10 sm:pb-12 safe-bottom">
 
@@ -68,13 +79,29 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
         </div>
       </div>
 
-      {/* Title + Summary */}
-      <div className="text-center mb-2 sm:mb-3">
+      {/* Title + Summary — 점수 카운트업 후 등장 */}
+      <div
+        className="text-center mb-2 sm:mb-3"
+        style={{
+          opacity: showTitle ? 1 : 0,
+          transform: showTitle ? "translateY(0)" : "translateY(16px)",
+          transition: "opacity 0.6s ease, transform 0.6s ease",
+        }}
+      >
         <h2 className="text-[20px] sm:text-[22px] font-black leading-snug mb-2.5 sm:mb-3 bg-gradient-to-br from-purple-200 via-pink-300 to-yellow-400 bg-clip-text text-transparent px-1">
           {result.title}
         </h2>
         <p className="text-[13px] sm:text-[14px] text-white/55 leading-[1.7] px-1">{result.summary}</p>
       </div>
+
+      {/* ━━━ 이하 본문: 순차 등장 ━━━ */}
+      <div
+        style={{
+          opacity: showBody ? 1 : 0,
+          transform: showBody ? "translateY(0)" : "translateY(20px)",
+          transition: "opacity 0.7s ease, transform 0.7s ease",
+        }}
+      >
 
       {/* ━━━ 2. 매장 프로필 ━━━ */}
       {(result.store_address || result.store_phone) && (
@@ -244,8 +271,16 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
         <div className="text-[13px] sm:text-[14px] font-semibold text-white/75 leading-[1.7]">{result.potential}</div>
       </div>
 
+      </div>{/* showBody wrapper 닫기 */}
+
       {/* ━━━ 5. CTA ━━━ */}
-      <div className="mt-8 sm:mt-10 space-y-2.5 sm:space-y-3">
+      <div
+        className="mt-8 sm:mt-10 space-y-2.5 sm:space-y-3"
+        style={{
+          opacity: showBody ? 1 : 0,
+          transition: "opacity 0.7s ease 0.3s",
+        }}
+      >
         <a
           href="https://kboost.imweb.me/"
           target="_blank"
