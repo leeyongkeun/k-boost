@@ -127,89 +127,76 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
       {/* ━━━ 3. 진단 상세 (플랫폼 + 핵심 지표) ━━━ */}
       <SectionHeader title="진단 상세" sub="왜 이 점수인지 알아보세요" />
 
-      {/* Platform Analysis */}
+      {/* Platform Analysis — 한 줄 요약형 */}
       {result.platforms && result.platforms.length > 0 && (
         <div className="p-4 sm:p-5 rounded-2xl mb-3 bg-white/[0.03] border border-white/[0.06]">
           <div className="text-[12px] sm:text-[13px] font-bold text-white/60 mb-3 sm:mb-3.5">플랫폼 등록 현황</div>
-          <div className="space-y-2.5 sm:space-y-3">
+          <div className="space-y-2 sm:space-y-2.5">
             {result.platforms.map((p) => {
               const icon = PLATFORM_ICONS[p.name];
               const link = getPlatformLink(p, result.store_name);
               return (
-                <div key={p.name} className="p-3 sm:p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2 sm:gap-2.5">
-                      {icon ? (
-                        <img src={icon} alt={p.name} className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shrink-0" />
-                      ) : (
-                        <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
-                      )}
-                      <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">{p.name}</span>
+                <div key={p.name} className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  {/* 아이콘 */}
+                  {icon ? (
+                    <img src={icon} alt={p.name} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0" />
+                  ) : (
+                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0 flex items-center justify-center ${p.registered ? "bg-emerald-400/10" : "bg-red-400/10"}`}>
+                      <div className={`w-2 h-2 rounded-full ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
                     </div>
-                    {p.registered ? (
-                      <span className="text-emerald-400/80 text-[10px] sm:text-[11px] font-medium bg-emerald-400/10 px-2 py-0.5 rounded-full">등록됨</span>
-                    ) : (
-                      <span className="text-red-400/70 text-[10px] sm:text-[11px] font-medium bg-red-400/10 px-2 py-0.5 rounded-full">미등록</span>
+                  )}
+                  {/* 이름 + 링크 */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] sm:text-[14px] text-white/80 font-semibold leading-tight">{p.name}</div>
+                    {link && (
+                      <a href={link} target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] sm:text-[11px] text-purple-400/60 hover:text-purple-300 transition-colors no-underline">
+                        바로가기 →
+                      </a>
                     )}
                   </div>
-                  {p.registered && (
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 ml-8 sm:ml-9">
-                      {p.score !== undefined && p.score > 0 && (
-                        <span className="text-yellow-400 text-[11px] sm:text-[12px] font-semibold bg-yellow-400/10 px-2 py-0.5 rounded-full">⭐ {p.score.toFixed(1)}</span>
-                      )}
-                      {p.reviewCount !== undefined && p.reviewCount > 0 && (
-                        <span className="text-white/50 text-[11px] sm:text-[12px] bg-white/[0.04] px-2 py-0.5 rounded-full">리뷰 {p.reviewCount}건</span>
-                      )}
-                      {p.hasPhotos && (
-                        <span className="text-white/40 text-[11px] sm:text-[12px] bg-white/[0.04] px-2 py-0.5 rounded-full">📷 사진</span>
-                      )}
-                      {p.hasEnglish && (
-                        <span className="text-purple-400 text-[10px] sm:text-[11px] font-semibold bg-purple-400/10 px-2 py-0.5 rounded-full">🌍 영어</span>
-                      )}
-                      {!p.hasEnglish && p.name === "Google Maps" && (
-                        <span className="text-white/25 text-[10px] sm:text-[11px] bg-white/[0.03] px-2 py-0.5 rounded-full">영어리뷰 없음</span>
-                      )}
-                      {p.category && (
-                        <span className="text-white/30 text-[10px] sm:text-[11px]">{p.category}</span>
-                      )}
-                    </div>
-                  )}
-                  {link && (
-                    <a
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block mt-2 ml-8 sm:ml-9 text-[11px] sm:text-[12px] text-purple-400/70 hover:text-purple-300 transition-colors no-underline"
-                    >
-                      {p.name}에서 보기 →
-                    </a>
-                  )}
+                  {/* 오른쪽: 뱃지 모음 */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {p.registered ? (
+                      <>
+                        {p.score !== undefined && p.score > 0 && (
+                          <span className="text-yellow-400 text-[11px] sm:text-[12px] font-bold">⭐{p.score.toFixed(1)}</span>
+                        )}
+                        {p.reviewCount !== undefined && p.reviewCount > 0 && (
+                          <span className="text-white/40 text-[10px] sm:text-[11px]">{p.reviewCount}건</span>
+                        )}
+                        {p.hasEnglish && (
+                          <span className="text-[9px] sm:text-[10px] font-bold text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">EN</span>
+                        )}
+                        <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">등록</span>
+                      </>
+                    ) : (
+                      <span className="text-[9px] sm:text-[10px] font-bold text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">미등록</span>
+                    )}
+                  </div>
                 </div>
               );
             })}
-          </div>
 
-          {/* Instagram Link */}
-          {result.instagram_url && (
-            <div className="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-              <div className="flex items-center gap-2 sm:gap-2.5">
-                <img src="/icons/instagram.svg" alt="Instagram" className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shrink-0" />
-                <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">Instagram</span>
+            {/* Instagram */}
+            {result.instagram_url && (
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <img src="/icons/instagram.svg" alt="Instagram" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] sm:text-[14px] text-white/80 font-semibold">Instagram</div>
+                  <a href={result.instagram_url} target="_blank" rel="noopener noreferrer"
+                    className="text-[10px] sm:text-[11px] text-purple-400/60 hover:text-purple-300 transition-colors no-underline">
+                    바로가기 →
+                  </a>
+                </div>
+                <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">연결됨</span>
               </div>
-              <a
-                href={result.instagram_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block mt-2 ml-8 sm:ml-9 text-[11px] sm:text-[12px] text-purple-400/70 hover:text-purple-300 transition-colors no-underline"
-              >
-                Instagram에서 보기 →
-              </a>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
-      {/* Key Metrics — 1열 리스트형 */}
+      {/* Key Metrics — 카드 리스트 */}
       {result.key_metrics && result.key_metrics.length > 0 && (
         <div className="space-y-2 sm:space-y-2.5">
           {result.key_metrics.map((metric, i) => {
@@ -217,16 +204,18 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
             return (
               <div
                 key={i}
-                className={`p-3.5 sm:p-4 rounded-2xl ${s.bg} border ${s.border} flex items-center gap-3 sm:gap-4`}
+                className={`p-3.5 sm:p-4 rounded-2xl ${s.bg} border ${s.border}`}
               >
-                <div className={`w-2 h-2 rounded-full ${s.dot} shrink-0`} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[11px] sm:text-[12px] text-white/40 font-medium">{metric.label}</div>
-                  <div className="text-[9px] sm:text-[10px] text-white/30 mt-0.5 leading-snug">{metric.detail}</div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${s.dot} shrink-0`} />
+                    <span className="text-[12px] sm:text-[13px] text-white/55 font-semibold">{metric.label}</span>
+                  </div>
+                  <div className={`text-[18px] sm:text-[22px] font-black font-outfit leading-none ${s.text}`}>
+                    {metric.value}
+                  </div>
                 </div>
-                <div className={`text-[20px] sm:text-[24px] font-black font-outfit leading-none ${s.text} shrink-0`}>
-                  {metric.value}
-                </div>
+                <div className="text-[11px] sm:text-[12px] text-white/40 leading-[1.6] pl-3.5">{metric.detail}</div>
               </div>
             );
           })}
