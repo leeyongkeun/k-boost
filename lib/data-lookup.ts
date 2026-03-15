@@ -1,88 +1,11 @@
-import { AreaData, LookupResult } from "./types";
-import aliasesData from "@/data/_aliases.json";
-import indexData from "@/data/_index.json";
-
-// 벤치마크 데이터
-import cafeBench from "@/data/benchmarks/cafe.json";
-import restaurantBench from "@/data/benchmarks/restaurant.json";
-import beautyBench from "@/data/benchmarks/beauty.json";
-import defaultBench from "@/data/benchmarks/default.json";
-
-// 지역 데이터 (전체 로드)
-import seoulHongdae from "@/data/areas/seoul-hongdae.json";
-import seoulItaewon from "@/data/areas/seoul-itaewon.json";
-import seoulMyeongdong from "@/data/areas/seoul-myeongdong.json";
-import seoulGangnam from "@/data/areas/seoul-gangnam.json";
-import seoulSeongsu from "@/data/areas/seoul-seongsu.json";
-import seoulEuljiro from "@/data/areas/seoul-euljiro.json";
-import seoulBukchon from "@/data/areas/seoul-bukchon.json";
-import seoulIkseon from "@/data/areas/seoul-ikseon.json";
-import seoulYeonnam from "@/data/areas/seoul-yeonnam.json";
-import seoulHannam from "@/data/areas/seoul-hannam.json";
-import seoulApgujeong from "@/data/areas/seoul-apgujeong.json";
-import seoulSinchon from "@/data/areas/seoul-sinchon.json";
-import seoulKondae from "@/data/areas/seoul-kondae.json";
-import seoulJamsil from "@/data/areas/seoul-jamsil.json";
-import seoulDongdaemun from "@/data/areas/seoul-dongdaemun.json";
-import seoulInsadong from "@/data/areas/seoul-insadong.json";
-import seoulGyeongnidan from "@/data/areas/seoul-gyeongnidan.json";
-import seoulMangwon from "@/data/areas/seoul-mangwon.json";
-import seoulSeochon from "@/data/areas/seoul-seochon.json";
-import seoulYeouido from "@/data/areas/seoul-yeouido.json";
-import busanHaeundae from "@/data/areas/busan-haeundae.json";
-import busanSeomyeon from "@/data/areas/busan-seomyeon.json";
-import gyeongju from "@/data/areas/gyeongju.json";
-import jeonjuHanok from "@/data/areas/jeonju-hanok.json";
-import jejuCity from "@/data/areas/jeju-city.json";
-import jejuSeogwipo from "@/data/areas/jeju-seogwipo.json";
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const AREA_MAP: Record<string, AreaData> = Object.fromEntries(
-  Object.entries({
-    "seoul-hongdae": seoulHongdae,
-    "seoul-itaewon": seoulItaewon,
-    "seoul-myeongdong": seoulMyeongdong,
-    "seoul-gangnam": seoulGangnam,
-    "seoul-seongsu": seoulSeongsu,
-    "seoul-euljiro": seoulEuljiro,
-    "seoul-bukchon": seoulBukchon,
-    "seoul-ikseon": seoulIkseon,
-    "seoul-yeonnam": seoulYeonnam,
-    "seoul-hannam": seoulHannam,
-    "seoul-apgujeong": seoulApgujeong,
-    "seoul-sinchon": seoulSinchon,
-    "seoul-kondae": seoulKondae,
-    "seoul-jamsil": seoulJamsil,
-    "seoul-dongdaemun": seoulDongdaemun,
-    "seoul-insadong": seoulInsadong,
-    "seoul-gyeongnidan": seoulGyeongnidan,
-    "seoul-mangwon": seoulMangwon,
-    "seoul-seochon": seoulSeochon,
-    "seoul-yeouido": seoulYeouido,
-    "busan-haeundae": busanHaeundae,
-    "busan-seomyeon": busanSeomyeon,
-    "gyeongju": gyeongju,
-    "jeonju-hanok": jeonjuHanok,
-    "jeju-city": jejuCity,
-    "jeju-seogwipo": jejuSeogwipo,
-  }).map(([k, v]) => [k, v as any])
-);
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
-const aliases = aliasesData as Record<string, string>;
-const _index = indexData;
+import { AreaData, BenchmarkTierData, LookupResult } from "./types";
+import { supabase } from "./supabase";
 
 // 업종 추론 키워드
 const BUSINESS_KEYWORDS: Record<string, string[]> = {
   "카페": ["카페", "cafe", "커피", "coffee", "디저트", "베이커리", "빵", "브런치"],
   "음식점": ["식당", "레스토랑", "고기", "치킨", "국수", "밥", "한식", "일식", "중식", "횟집", "회", "분식", "떡볶이", "삼겹살", "갈비", "냉면"],
   "뷰티샵": ["뷰티", "헤어", "네일", "salon", "미용", "클리닉", "피부", "에스테틱"],
-};
-
-const BENCH_MAP: Record<string, typeof cafeBench> = {
-  "카페": cafeBench,
-  "음식점": restaurantBench,
-  "뷰티샵": beautyBench,
 };
 
 function inferBusinessType(text: string): string {
@@ -93,35 +16,96 @@ function inferBusinessType(text: string): string {
   return "매장";
 }
 
-function findAreaFromText(text: string): AreaData | undefined {
-  // 별칭에서 매칭 (긴 키워드 우선 매칭)
-  const sortedAliases = Object.keys(aliases).sort((a, b) => b.length - a.length);
-  for (const alias of sortedAliases) {
+async function findAreaFromText(text: string): Promise<AreaData | undefined> {
+  // 별칭 테이블에서 매칭 (긴 키워드 우선)
+  const { data: aliases } = await supabase
+    .from("area_aliases")
+    .select("alias, district_id")
+    .order("alias");
+
+  if (!aliases) return undefined;
+
+  // 긴 별칭부터 매칭
+  const sorted = aliases.sort((a, b) => b.alias.length - a.alias.length);
+  for (const { alias, district_id } of sorted) {
     if (text.includes(alias)) {
-      const districtId = aliases[alias];
-      return AREA_MAP[districtId];
+      const { data: area } = await supabase
+        .from("areas")
+        .select("*")
+        .eq("district_id", district_id)
+        .single();
+
+      if (area) {
+        return {
+          district_id: area.district_id,
+          district_name: area.district_name,
+          city: area.city,
+          tourist_rank: area.tourist_rank,
+          foreign_visitor_ratio: area.foreign_visitor_ratio,
+          daily_foot_traffic: area.daily_foot_traffic,
+          popular_business_types: area.popular_business_types,
+          nearby_landmarks: area.nearby_landmarks,
+          google_maps_search_volume: area.google_maps_search_volume,
+          avg_naver_review_count: area.avg_naver_review_count,
+          avg_google_review_count: area.avg_google_review_count,
+          competitor_density: area.competitor_density,
+        };
+      }
     }
   }
   return undefined;
 }
 
-function getBenchmark(businessType: string, tier: string) {
-  const bench = BENCH_MAP[businessType] || defaultBench;
-  const tierData = bench.tiers[tier as keyof typeof bench.tiers];
-  return tierData || bench.tiers["B"];
+async function getBenchmark(businessType: string, tier: string): Promise<BenchmarkTierData> {
+  // DB에서 해당 업종+등급 벤치마크 조회
+  const { data } = await supabase
+    .from("benchmarks")
+    .select("*")
+    .eq("business_type", businessType)
+    .eq("district_tier", tier)
+    .single();
+
+  if (data) {
+    return {
+      avg_naver_score: data.avg_naver_score,
+      avg_naver_reviews: data.avg_naver_reviews,
+      avg_google_score: data.avg_google_score,
+      avg_google_reviews: data.avg_google_reviews,
+      avg_instagram_hashtags: data.avg_instagram_hashtags,
+      google_registration_rate: data.google_registration_rate,
+      tripadvisor_registration_rate: data.tripadvisor_registration_rate,
+      english_support_rate: data.english_support_rate,
+    };
+  }
+
+  // fallback: 기본 업종의 B등급
+  const { data: fallback } = await supabase
+    .from("benchmarks")
+    .select("*")
+    .eq("business_type", "매장")
+    .eq("district_tier", "B")
+    .single();
+
+  return {
+    avg_naver_score: fallback?.avg_naver_score ?? 3.8,
+    avg_naver_reviews: fallback?.avg_naver_reviews ?? 50,
+    avg_google_score: fallback?.avg_google_score ?? 3.5,
+    avg_google_reviews: fallback?.avg_google_reviews ?? 5,
+    avg_instagram_hashtags: fallback?.avg_instagram_hashtags ?? 300,
+    google_registration_rate: fallback?.google_registration_rate ?? 0.2,
+    tripadvisor_registration_rate: fallback?.tripadvisor_registration_rate ?? 0.02,
+    english_support_rate: fallback?.english_support_rate ?? 0.05,
+  };
 }
 
-export function lookupStore(storeInfo: string): LookupResult {
+export async function lookupStore(storeInfo: string): Promise<LookupResult> {
   const businessType = inferBusinessType(storeInfo);
 
-  // TODO: Phase 2에서 _index.json의 stores 배열에서 정확한 매장 매칭 추가
-  // const exactStore = findExactStore(storeInfo);
-
   // 상권 매칭
-  const area = findAreaFromText(storeInfo);
+  const area = await findAreaFromText(storeInfo);
 
   if (area) {
-    const benchmark = getBenchmark(businessType, area.tourist_rank);
+    const benchmark = await getBenchmark(businessType, area.tourist_rank);
     return {
       matchType: "area_benchmark",
       area,
@@ -138,5 +122,3 @@ export function lookupStore(storeInfo: string): LookupResult {
     confidence: 0,
   };
 }
-
-export { _index, AREA_MAP };

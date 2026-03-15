@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
     // 1단계: 로컬 데이터 조회 시도
     const storeInfo = answers.store_info || "";
     const storeName = storeInfo.split(/[,，]/)[0].trim() || storeInfo.trim();
-    const lookup = lookupStore(storeInfo);
+    const lookup = await lookupStore(storeInfo);
 
     if (lookup.matchType !== "mock") {
       await new Promise((resolve) => setTimeout(resolve, 1500));
