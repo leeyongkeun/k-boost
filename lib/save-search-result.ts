@@ -79,14 +79,16 @@ const CACHE_TTL_DAYS = 7;
 
 /** 캐시 조회: 같은 keyword로 7일 이내 검색 결과가 있으면 반환 */
 export async function getCachedResult(searchKeyword: string): Promise<PlatformSearchResult | null> {
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - CACHE_TTL_DAYS);
+  // KST 기준 7일 전 계산
+  const now = new Date(Date.now() + 9 * 60 * 60 * 1000); // UTC → KST
+  now.setDate(now.getDate() - CACHE_TTL_DAYS);
+  const cutoffKST = now.toISOString().slice(0, 19).replace("T", " ");
 
   const { data, error } = await supabase
     .from("search_results")
     .select("*")
     .eq("search_keyword", searchKeyword)
-    .gte("created_at", cutoff.toISOString())
+    .gte("created_at", cutoffKST)
     .order("created_at", { ascending: false })
     .limit(1);
 

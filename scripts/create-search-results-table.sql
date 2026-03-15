@@ -48,7 +48,7 @@ CREATE TABLE search_results (
   score INTEGER,
 
   -- 메타
-  created_at TIMESTAMPTZ DEFAULT now()
+  created_at TIMESTAMP DEFAULT (now() AT TIME ZONE 'Asia/Seoul')
 );
 
 ALTER TABLE search_results ENABLE ROW LEVEL SECURITY;
