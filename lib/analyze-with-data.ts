@@ -23,7 +23,6 @@ export function analyzeWithData(
   const tMul = tierMultiplier[area.tourist_rank] || 0.8;
 
   const hasGoogle = Math.random() < bench.google_registration_rate * (1 + fMul * 0.5);
-  const hasTripadvisor = Math.random() < bench.tripadvisor_registration_rate * (1 + fMul * 0.5);
   const hasEnglishOnPlatform = fMul >= 0.6 || area.foreign_visitor_ratio >= 0.3;
 
   const platforms: PlatformInfo[] = [
@@ -51,27 +50,12 @@ export function analyzeWithData(
       hasPhotos: hasGoogle,
       hasEnglish: hasGoogle && hasEnglishOnPlatform,
     },
-    {
-      name: "TripAdvisor",
-      registered: hasTripadvisor,
-      score: hasTripadvisor ? Math.min(5, (bench.avg_google_score || 3.8) + (fMul - 0.5) * 0.3) : undefined,
-      reviewCount: hasTripadvisor ? Math.round(bench.avg_google_reviews * 0.5 * tMul) : 0,
-      hasPhotos: hasTripadvisor,
-      hasEnglish: hasTripadvisor,
-    },
-    {
-      name: "Instagram",
-      registered: true,
-      reviewCount: Math.round(bench.avg_instagram_hashtags * tMul * (0.6 + fMul * 0.4)),
-      hasPhotos: true,
-      hasEnglish: hasEnglishOnPlatform,
-    },
   ];
 
   // 점수 계산
   const registeredCount = platforms.filter((p) => p.registered).length;
   const hasEnglishCount = platforms.filter((p) => p.hasEnglish).length;
-  const onlinePresence = Math.min(20, Math.round(registeredCount * 4 + hasEnglishCount * 1.5));
+  const onlinePresence = Math.min(20, Math.round(registeredCount * 6 + hasEnglishCount * 2));
   const avgScore = platforms.filter((p) => p.score).reduce((a, p) => a + (p.score || 0), 0) / Math.max(1, platforms.filter((p) => p.score).length);
   const totalReviews = platforms.reduce((a, p) => a + (p.reviewCount || 0), 0);
   const reviewStatus = Math.min(20, Math.round((avgScore - 3) * 8 + Math.min(totalReviews / 50, 10)));

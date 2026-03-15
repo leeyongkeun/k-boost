@@ -3,10 +3,19 @@ import { QUESTIONS } from "@/lib/questions";
 import { QuizAnswers } from "@/lib/types";
 import { lookupStore } from "@/lib/data-lookup";
 import { analyzeWithData } from "@/lib/analyze-with-data";
-// Gemini 웹검색 분석 (USE_GEMINI_SEARCH=true 시 활성화)
-// import { searchAndAnalyzeStore } from "@/lib/gemini";
 
-const USE_GEMINI_SEARCH = process.env.USE_GEMINI_SEARCH === "true";
+// 분석 모드: "api" (네이버/카카오 API + Gemini 분석) | "gemini_search" (Gemini 웹검색) | "db" (DB 목데이터)
+const ANALYZE_MODE = process.env.ANALYZE_MODE || "db";
+
+// 전체 분석에 15초 타임아웃
+function withGlobalTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("TIMEOUT")), ms);
+    }),
+  ]);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,33 +40,87 @@ export async function POST(request: NextRequest) {
     const foreignRatio = answers.foreign_ratio || "very_low";
     const changeWillingness = answers.change_willingness || "low";
 
-    // --- Gemini 웹검색 모드 ---
-    if (USE_GEMINI_SEARCH) {
-      const { searchAndAnalyzeStore } = await import("@/lib/gemini");
+    // DB 상권 데이터 조회 (보조 컨텍스트)
+    let areaContext;
+    try {
+      const lookup = await lookupStore(storeInfo);
+      if (lookup.matchType !== "mock" && lookup.area) {
+        areaContext = {
+          districtName: lookup.area.district_name,
+          city: lookup.area.city,
+          touristRank: lookup.area.tourist_rank,
+          foreignVisitorRatio: lookup.area.foreign_visitor_ratio,
+          dailyFootTraffic: lookup.area.daily_foot_traffic,
+        };
+      }
+    } catch (e) {
+      console.log("[analyze] DB lookup skipped:", e);
+    }
 
-      let areaContext;
-      try {
-        const lookup = await lookupStore(storeInfo);
-        if (lookup.matchType !== "mock" && lookup.area) {
-          areaContext = {
-            districtName: lookup.area.district_name,
-            city: lookup.area.city,
-            touristRank: lookup.area.tourist_rank,
-            foreignVisitorRatio: lookup.area.foreign_visitor_ratio,
-            dailyFootTraffic: lookup.area.daily_foot_traffic,
-          };
-        }
-      } catch (e) {
-        console.log("[analyze] DB lookup skipped:", e);
+    const startTime = Date.now();
+
+    // --- 모드 1: 네이버/카카오 API + Gemini 분석 (가장 저렴 + 정확) ---
+    if (ANALYZE_MODE === "api") {
+      const { searchPlatforms } = await import("@/lib/platform-search");
+      const { analyzeWithPlatformData } = await import("@/lib/claude");
+
+      console.log("[analyze] API mode - searching platforms for:", storeName);
+
+      const platformData = await withGlobalTimeout(searchPlatforms(storeInfo), 12000);
+
+      if (!platformData) {
+        return NextResponse.json(
+          { error: "매장을 찾을 수 없습니다. 매장명을 정확히 입력해주세요." },
+          { status: 404 }
+        );
       }
 
-      const result = await searchAndAnalyzeStore({
-        storeName,
-        storeInfo,
-        foreignRatio,
-        changeWillingness,
-        areaContext,
-      });
+      console.log("[analyze] Platform search done in", Date.now() - startTime, "ms");
+
+      const remainingTime = Math.max(3000, 15000 - (Date.now() - startTime));
+      const result = await withGlobalTimeout(
+        analyzeWithPlatformData({
+          storeName: platformData.storeName,
+          storeInfo,
+          businessType: platformData.businessType,
+          address: platformData.address,
+          phone: platformData.phone,
+          platforms: platformData.platforms,
+          naverCategory: platformData.naverCategory,
+          kakaoCategory: platformData.kakaoCategory,
+          foreignRatio,
+          changeWillingness,
+          areaContext,
+        }),
+        remainingTime
+      );
+
+      console.log("[analyze] Total time:", Date.now() - startTime, "ms");
+
+      if (!result) {
+        return NextResponse.json(
+          { error: "매장 분석에 실패했습니다. 다시 시도해주세요." },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json(result);
+    }
+
+    // --- 모드 2: Gemini 웹검색 (Google Search Grounding) ---
+    if (ANALYZE_MODE === "gemini_search") {
+      const { searchAndAnalyzeStore } = await import("@/lib/gemini");
+
+      const result = await withGlobalTimeout(
+        searchAndAnalyzeStore({
+          storeName,
+          storeInfo,
+          foreignRatio,
+          changeWillingness,
+          areaContext,
+        }),
+        15000
+      );
 
       if (!result) {
         return NextResponse.json(
@@ -69,10 +132,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result);
     }
 
-    // --- DB 목데이터 모드 (기본) ---
+    // --- 모드 3: DB 목데이터 (기본, 무료) ---
     const lookup = await lookupStore(storeInfo);
 
-    console.log("[analyze] storeInfo:", storeInfo, "matchType:", lookup.matchType, "businessType:", lookup.businessType);
+    console.log("[analyze] DB mode - storeInfo:", storeInfo, "matchType:", lookup.matchType);
 
     if (lookup.matchType === "mock") {
       return NextResponse.json(
@@ -84,10 +147,11 @@ export async function POST(request: NextRequest) {
     const dbResult = analyzeWithData(lookup, foreignRatio, changeWillingness, storeName);
     return NextResponse.json(dbResult);
   } catch (e) {
-    console.error("Analysis error:", e);
+    const isTimeout = e instanceof Error && e.message === "TIMEOUT";
+    console.error("Analysis error:", isTimeout ? "15s timeout exceeded" : e);
     return NextResponse.json(
-      { error: "분석 중 오류가 발생했습니다. 다시 시도해주세요." },
-      { status: 500 }
+      { error: isTimeout ? "분석 시간이 초과되었습니다. 다시 시도해주세요." : "분석 중 오류가 발생했습니다. 다시 시도해주세요." },
+      { status: isTimeout ? 504 : 500 }
     );
   }
 }
