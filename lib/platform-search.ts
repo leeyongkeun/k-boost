@@ -244,23 +244,25 @@ function stripHtml(str: string): string {
   return str.replace(/<[^>]*>/g, "");
 }
 
-// --- 전체 플랫폼 통합 검색 (전체 12초 타임아웃) ---
+// --- 전체 플랫폼 통합 검색 (3개 완전 병렬) ---
 export async function searchPlatforms(query: string): Promise<PlatformSearchResult | null> {
   const startTime = Date.now();
 
-  // 1단계: 네이버, 카카오 동시 검색 (매장 기본 정보 확보)
-  const [naverResult, kakaoResult] = await Promise.all([
+  // 네이버 + 카카오 + Google Maps 3개 동시 검색
+  const [naverResult, kakaoResult, googleResult] = await Promise.all([
     searchNaver(query),
     searchKakao(query),
+    searchGoogleMaps(query),
   ]);
 
-  console.log("[platform-search] Phase 1 done in", Date.now() - startTime, "ms");
-  console.log("[platform-search] Naver result:", naverResult ? "found" : "null");
-  console.log("[platform-search] Kakao result:", kakaoResult ? "found" : "null");
+  console.log("[platform-search] All APIs done in", Date.now() - startTime, "ms");
+  console.log("[platform-search] Naver:", naverResult ? "found" : "null",
+    "| Kakao:", kakaoResult ? "found" : "null",
+    "| Google:", googleResult ? "found" : "null");
 
-  // 둘 다 못 찾으면 실패
+  // 네이버/카카오 둘 다 못 찾으면 실패
   if (!naverResult && !kakaoResult) {
-    console.log("[platform-search] Both failed for query:", query);
+    console.log("[platform-search] Both Naver/Kakao failed for query:", query);
     logError({ searchKeyword: query, errorMessage: "네이버/카카오 모두 검색 결과 없음", errorType: "platform_search" });
     return null;
   }
@@ -281,13 +283,6 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
   // 네이버 link가 인스타그램이면 별도 저장
   const naverLink = naverResult?.link || "";
   const instagramUrl = /instagram\.com/.test(naverLink) ? naverLink : undefined;
-
-  // 2단계: Google Maps 검색
-  const googleQuery = `${storeName} ${address}`;
-  const googleResult = await searchGoogleMaps(googleQuery);
-
-  console.log("[platform-search] Phase 2 done in", Date.now() - startTime, "ms");
-  console.log("[platform-search] Google Maps:", googleResult ? "found" : "skipped/not found");
 
   const platforms: PlatformInfo[] = [
     {

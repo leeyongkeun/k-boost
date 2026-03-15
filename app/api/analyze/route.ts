@@ -85,23 +85,6 @@ export async function POST(request: NextRequest) {
     const foreignRatio = answers.foreign_ratio || "very_low";
     const changeWillingness = answers.change_willingness || "low";
 
-    // DB 상권 데이터 조회 (보조 컨텍스트)
-    let areaContext;
-    try {
-      const lookup = await lookupStore(storeInfo);
-      if (lookup.matchType !== "mock" && lookup.area) {
-        areaContext = {
-          districtName: lookup.area.district_name,
-          city: lookup.area.city,
-          touristRank: lookup.area.tourist_rank,
-          foreignVisitorRatio: lookup.area.foreign_visitor_ratio,
-          dailyFootTraffic: lookup.area.daily_foot_traffic,
-        };
-      }
-    } catch (e) {
-      console.log("[analyze] DB lookup skipped:", e);
-    }
-
     const startTime = Date.now();
 
     // --- 모드 1: 네이버/카카오 API + Claude 분석 (가장 저렴 + 정확) ---
@@ -112,13 +95,32 @@ export async function POST(request: NextRequest) {
 
       console.log("[analyze] API mode - searching platforms for:", storeName);
 
-      // 캐시 조회 (7일 이내 같은 키워드)
-      let platformData = await getCachedResult(storeInfo);
+      // 1단계: 캐시 조회 + DB 상권 조회 병렬
+      const [cachedData, areaLookup] = await Promise.all([
+        getCachedResult(storeInfo),
+        lookupStore(storeInfo).catch(() => null),
+      ]);
+
+      let areaContext;
+      if (areaLookup && areaLookup.matchType !== "mock" && areaLookup.area) {
+        areaContext = {
+          districtName: areaLookup.area.district_name,
+          city: areaLookup.area.city,
+          touristRank: areaLookup.area.tourist_rank,
+          foreignVisitorRatio: areaLookup.area.foreign_visitor_ratio,
+          dailyFootTraffic: areaLookup.area.daily_foot_traffic,
+        };
+      }
+
+      console.log("[analyze] Cache + DB lookup done in", Date.now() - startTime, "ms");
+
+      // 2단계: 캐시 히트 or 3개 플랫폼 병렬 검색
+      let platformData = cachedData;
       let fromCache = false;
 
       if (platformData) {
         fromCache = true;
-        console.log("[analyze] Cache HIT - skipping API calls, saved", Date.now() - startTime, "ms");
+        console.log("[analyze] Cache HIT - skipping API calls");
       } else {
         platformData = await withGlobalTimeout(searchPlatforms(storeInfo), PLATFORM_SEARCH_TIMEOUT_MS);
       }
@@ -131,9 +133,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      console.log("[analyze] Platform search done in", Date.now() - startTime, "ms");
+      console.log("[analyze] Platform data ready in", Date.now() - startTime, "ms");
 
-      const remainingTime = Math.max(3000, GLOBAL_ANALYSIS_TIMEOUT_MS - (Date.now() - startTime));
+      // 3단계: Claude 분석 (남은 시간 전부 사용)
+      const remainingTime = Math.max(5000, GLOBAL_ANALYSIS_TIMEOUT_MS - (Date.now() - startTime));
       const result = await withGlobalTimeout(
         analyzeWithPlatformData({
           storeName: platformData.storeName,
@@ -177,6 +180,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result);
     }
 
+    // DB 상권 데이터 조회 (모드 2, 3용)
+    let areaContext;
+    try {
+      const lookup = await lookupStore(storeInfo);
+      if (lookup.matchType !== "mock" && lookup.area) {
+        areaContext = {
+          districtName: lookup.area.district_name,
+          city: lookup.area.city,
+          touristRank: lookup.area.tourist_rank,
+          foreignVisitorRatio: lookup.area.foreign_visitor_ratio,
+          dailyFootTraffic: lookup.area.daily_foot_traffic,
+        };
+      }
+    } catch (e) {
+      console.log("[analyze] DB lookup skipped:", e);
+    }
+
     // --- 모드 2: Gemini 웹검색 (Google Search Grounding) ---
     if (ANALYZE_MODE === "gemini_search") {
       const { searchAndAnalyzeStore } = await import("@/lib/gemini");
@@ -218,7 +238,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(dbResult);
   } catch (e) {
     const isTimeout = e instanceof Error && e.message === "TIMEOUT";
-    const errorMsg = isTimeout ? "18s timeout exceeded" : (e instanceof Error ? e.message : String(e));
+    const errorMsg = isTimeout ? `${GLOBAL_ANALYSIS_TIMEOUT_MS / 1000}s timeout exceeded` : (e instanceof Error ? e.message : String(e));
     console.error("Analysis error:", errorMsg);
     logError({
       searchKeyword: undefined,

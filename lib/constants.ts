@@ -1,7 +1,7 @@
 // --- 타임아웃 ---
-export const API_TIMEOUT_MS = 6000;           // 개별 플랫폼 API
-export const PLATFORM_SEARCH_TIMEOUT_MS = 14400; // 전체 플랫폼 검색
-export const GLOBAL_ANALYSIS_TIMEOUT_MS = 18000; // 전체 분석 (API + Claude)
+export const API_TIMEOUT_MS = 5000;           // 개별 플랫폼 API (3개 병렬이므로 줄임)
+export const PLATFORM_SEARCH_TIMEOUT_MS = 7000;  // 전체 플랫폼 검색 (3개 병렬)
+export const GLOBAL_ANALYSIS_TIMEOUT_MS = 20000; // 전체 분석 (플랫폼 + Claude)
 
 // --- 캐시 ---
 export const CACHE_TTL_DAYS = 7;
