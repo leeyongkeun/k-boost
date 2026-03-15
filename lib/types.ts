@@ -50,6 +50,7 @@ export interface AnalysisResult {
   business_type: string;
   store_address?: string;
   store_phone?: string;
+  instagram_url?: string;
   platforms: PlatformInfo[];
   title: string;
   summary: string;

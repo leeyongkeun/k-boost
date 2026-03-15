@@ -48,6 +48,7 @@ export interface PlatformSearchResult {
   platforms: PlatformInfo[];
   naverCategory: string;
   kakaoCategory: string;
+  instagramUrl?: string;
 }
 
 // --- 타임아웃 유틸 ---
@@ -271,6 +272,10 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
 
   const phone = naverResult?.telephone || kakaoResult?.phone || "";
 
+  // 네이버 link가 인스타그램이면 별도 저장
+  const naverLink = naverResult?.link || "";
+  const instagramUrl = /instagram\.com/.test(naverLink) ? naverLink : undefined;
+
   // 2단계: Google Maps 검색
   const googleQuery = `${storeName} ${address}`;
   const googleResult = await searchGoogleMaps(googleQuery);
@@ -285,7 +290,7 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
       reviewCount: 0,
       hasPhotos: !!naverResult,
       hasEnglish: false,
-      link: naverResult?.link || undefined,
+      link: instagramUrl ? undefined : (naverLink || undefined),
       category: naverResult?.category || undefined,
     },
     {
@@ -317,5 +322,6 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
     platforms,
     naverCategory,
     kakaoCategory,
+    instagramUrl,
   };
 }

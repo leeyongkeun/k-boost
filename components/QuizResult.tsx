@@ -10,6 +10,29 @@ interface QuizResultProps {
   resultId?: string | null;
 }
 
+const PLATFORM_ICONS: Record<string, { letter: string; bg: string; text: string }> = {
+  "네이버 지도": { letter: "N", bg: "bg-[#03C75A]/20", text: "text-[#03C75A]" },
+  "카카오맵": { letter: "K", bg: "bg-[#FEE500]/20", text: "text-[#FEE500]" },
+  "Google Maps": { letter: "G", bg: "bg-[#EA4335]/20", text: "text-[#EA4335]" },
+};
+
+function getPlatformLink(p: { name: string; link?: string; registered: boolean }, storeName: string): string | null {
+  if (!p.registered) return null;
+  if (p.name === "네이버 지도") {
+    // link가 네이버 도메인이 아니면(인스타 등) 네이버 지도 검색 URL 생성
+    if (p.link && /naver\.com|naver\.me/.test(p.link)) return p.link;
+    return `https://map.naver.com/v5/search/${encodeURIComponent(storeName)}`;
+  }
+  if (p.name === "카카오맵") {
+    if (p.link) return p.link;
+    return `https://map.kakao.com/?q=${encodeURIComponent(storeName)}`;
+  }
+  if (p.name === "Google Maps") {
+    return `https://www.google.com/maps/search/${encodeURIComponent(storeName)}`;
+  }
+  return null;
+}
+
 const STATUS_STYLES = {
   good: { bg: "bg-emerald-500/15", border: "border-emerald-500/25", text: "text-emerald-400" },
   warning: { bg: "bg-yellow-500/15", border: "border-yellow-500/25", text: "text-yellow-400" },
@@ -60,52 +83,82 @@ export default function QuizResult({ result, onRestart, resultId }: QuizResultPr
         <div className="p-4 sm:p-5 rounded-2xl mb-2.5 sm:mb-3 bg-white/[0.03] border border-white/[0.06]">
           <div className="text-[12px] sm:text-[13px] font-bold text-white/60 mb-3 sm:mb-3.5">플랫폼 등록 현황</div>
           <div className="space-y-2.5 sm:space-y-3">
-            {result.platforms.map((p) => (
-              <div key={p.name} className="p-3 sm:p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2 sm:gap-2.5">
-                    <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
-                    <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">{p.name}</span>
+            {result.platforms.map((p) => {
+              const icon = PLATFORM_ICONS[p.name];
+              const link = getPlatformLink(p, result.store_name);
+              return (
+                <div key={p.name} className="p-3 sm:p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                      {icon ? (
+                        <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg ${icon.bg} flex items-center justify-center shrink-0`}>
+                          <span className={`text-[12px] sm:text-[13px] font-black ${icon.text}`}>{icon.letter}</span>
+                        </div>
+                      ) : (
+                        <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${p.registered ? "bg-emerald-400" : "bg-red-400"}`} />
+                      )}
+                      <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">{p.name}</span>
+                    </div>
+                    {!p.registered && (
+                      <span className="text-red-400/70 text-[10px] sm:text-[11px] font-medium bg-red-400/10 px-2 py-0.5 rounded-full">미등록</span>
+                    )}
                   </div>
-                  {!p.registered && (
-                    <span className="text-red-400/70 text-[10px] sm:text-[11px] font-medium bg-red-400/10 px-2 py-0.5 rounded-full">미등록</span>
+                  {p.registered && (
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 ml-8 sm:ml-9">
+                      {p.score !== undefined && p.score > 0 && (
+                        <span className="text-yellow-400 text-[11px] sm:text-[12px] font-semibold bg-yellow-400/10 px-2 py-0.5 rounded-full">⭐ {p.score.toFixed(1)}</span>
+                      )}
+                      {p.reviewCount !== undefined && p.reviewCount > 0 && (
+                        <span className="text-white/50 text-[11px] sm:text-[12px] bg-white/[0.04] px-2 py-0.5 rounded-full">리뷰 {p.reviewCount}건</span>
+                      )}
+                      {p.hasPhotos && (
+                        <span className="text-white/40 text-[11px] sm:text-[12px] bg-white/[0.04] px-2 py-0.5 rounded-full">📷 사진</span>
+                      )}
+                      {p.hasEnglish && (
+                        <span className="text-purple-400 text-[10px] sm:text-[11px] font-semibold bg-purple-400/10 px-2 py-0.5 rounded-full">🌍 영어</span>
+                      )}
+                      {!p.hasEnglish && p.name === "Google Maps" && (
+                        <span className="text-white/25 text-[10px] sm:text-[11px] bg-white/[0.03] px-2 py-0.5 rounded-full">영어리뷰 없음</span>
+                      )}
+                      {p.category && (
+                        <span className="text-white/30 text-[10px] sm:text-[11px]">{p.category}</span>
+                      )}
+                    </div>
+                  )}
+                  {link && (
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-2 ml-8 sm:ml-9 text-[11px] sm:text-[12px] text-purple-400/70 hover:text-purple-300 transition-colors no-underline"
+                    >
+                      {p.name}에서 보기 →
+                    </a>
                   )}
                 </div>
-                {p.registered && (
-                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
-                    {p.score !== undefined && p.score > 0 && (
-                      <span className="text-yellow-400 text-[11px] sm:text-[12px] font-semibold bg-yellow-400/10 px-2 py-0.5 rounded-full">⭐ {p.score.toFixed(1)}</span>
-                    )}
-                    {p.reviewCount !== undefined && p.reviewCount > 0 && (
-                      <span className="text-white/50 text-[11px] sm:text-[12px] bg-white/[0.04] px-2 py-0.5 rounded-full">리뷰 {p.reviewCount}건</span>
-                    )}
-                    {p.hasPhotos && (
-                      <span className="text-white/40 text-[11px] sm:text-[12px] bg-white/[0.04] px-2 py-0.5 rounded-full">📷 사진</span>
-                    )}
-                    {p.hasEnglish && (
-                      <span className="text-purple-400 text-[10px] sm:text-[11px] font-semibold bg-purple-400/10 px-2 py-0.5 rounded-full">🌍 영어</span>
-                    )}
-                    {!p.hasEnglish && p.name === "Google Maps" && (
-                      <span className="text-white/25 text-[10px] sm:text-[11px] bg-white/[0.03] px-2 py-0.5 rounded-full">영어리뷰 없음</span>
-                    )}
-                    {p.category && (
-                      <span className="text-white/30 text-[10px] sm:text-[11px]">{p.category}</span>
-                    )}
-                  </div>
-                )}
-                {p.registered && p.link && (
-                  <a
-                    href={p.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block mt-2 text-[11px] sm:text-[12px] text-purple-400/70 hover:text-purple-300 transition-colors no-underline"
-                  >
-                    {p.name}에서 보기 →
-                  </a>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Instagram Link */}
+          {result.instagram_url && (
+            <div className="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-[#833AB4]/20 via-[#E1306C]/20 to-[#F77737]/20 flex items-center justify-center shrink-0">
+                  <span className="text-[12px] sm:text-[13px] font-black bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#F77737] bg-clip-text text-transparent">IG</span>
+                </div>
+                <span className="text-[13px] sm:text-[14px] text-white/80 font-semibold">Instagram</span>
+              </div>
+              <a
+                href={result.instagram_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2 ml-8 sm:ml-9 text-[11px] sm:text-[12px] text-purple-400/70 hover:text-purple-300 transition-colors no-underline"
+              >
+                Instagram에서 보기 →
+              </a>
+            </div>
+          )}
         </div>
       )}
 

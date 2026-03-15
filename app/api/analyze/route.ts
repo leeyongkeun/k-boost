@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
           kakaoCategory: platformData.kakaoCategory,
           foreignRatio,
           changeWillingness,
+          instagramUrl: platformData.instagramUrl,
           areaContext,
         }),
         remainingTime

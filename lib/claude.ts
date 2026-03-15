@@ -17,6 +17,7 @@ interface AnalyzeWithDataInput {
   kakaoCategory: string;
   foreignRatio: string;
   changeWillingness: string;
+  instagramUrl?: string;
   areaContext?: {
     districtName: string;
     city: string;
@@ -189,6 +190,7 @@ ${platformSummary}
       business_type: input.businessType,
       store_address: input.address || undefined,
       store_phone: input.phone || undefined,
+      instagram_url: input.instagramUrl,
       platforms: input.platforms.map((p) => ({
         name: p.name,
         registered: p.registered,
