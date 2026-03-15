@@ -1,4 +1,5 @@
-import { AnalysisResult, LookupResult, PlatformInfo, KeyMetric, BenchmarkTierData } from "./types";
+import { AnalysisResult, LookupResult, PlatformInfo, KeyMetric } from "./types";
+import { CTA_MESSAGES } from "./constants";
 
 export function analyzeWithData(
   lookup: LookupResult,
@@ -89,7 +90,6 @@ export function analyzeWithData(
   // 핵심 지표
   const naverP = platforms.find((p) => p.name === "네이버 지도")!;
   const googleP = platforms.find((p) => p.name === "Google Maps")!;
-  const instaP = platforms.find((p) => p.name === "Instagram")!;
 
   const keyMetrics: KeyMetric[] = [
     {
@@ -112,9 +112,9 @@ export function analyzeWithData(
     },
     {
       label: "SNS 노출",
-      value: `${instaP.reviewCount}건`,
-      status: (instaP.reviewCount || 0) >= 300 ? "good" : (instaP.reviewCount || 0) >= 100 ? "warning" : "critical",
-      detail: `인스타그램 게시물 (${area.district_name} 업종 평균 ${bench.avg_instagram_hashtags}건)`,
+      value: `${bench.avg_instagram_hashtags}건`,
+      status: bench.avg_instagram_hashtags >= 300 ? "good" : bench.avg_instagram_hashtags >= 100 ? "warning" : "critical",
+      detail: `${area.district_name} ${businessType} 인스타그램 평균 해시태그 수`,
     },
     {
       label: "상권 외국인 비율",
@@ -141,19 +141,12 @@ export function analyzeWithData(
     D: `현재 온라인 존재감과 외국인 접근성 모두 개선이 필요합니다. 무료 플랫폼 등록부터 시작해보세요.`,
   };
 
-  const ctaMessages: Record<string, string> = {
-    S: "K-BOOST 프리미엄 분석 받아보기",
-    A: "K-BOOST 맞춤 전략 확인하기",
-    B: "K-BOOST 시작 가이드 받기",
-    C: "K-BOOST 무료 상담 받기",
-    D: "K-BOOST 기본 진단 받기",
-  };
 
   const improvements: string[] = [];
   if (!googleP.registered) improvements.push(`Google Maps 매장 등록 — ${area.district_name} ${businessType} 등록률 ${Math.round(bench.google_registration_rate * 100)}%, 외국인 검색 1순위 플랫폼`);
   else if (!googleP.hasEnglish) improvements.push("Google Maps 영어 매장 정보 추가 — 외국인 검색 노출 핵심");
   if (hasEnglishCount < 3) improvements.push("주요 플랫폼 영어/일본어 매장 정보 추가");
-  if ((instaP.reviewCount || 0) < bench.avg_instagram_hashtags) improvements.push(`인스타그램 K-컨셉 콘텐츠 강화 (${area.district_name} 평균 ${bench.avg_instagram_hashtags}건 대비 부족)`);
+  improvements.push(`인스타그램 K-컨셉 콘텐츠 강화 (${area.district_name} 평균 ${bench.avg_instagram_hashtags}건)`);
   if (improvements.length < 3) improvements.push("다국어 메뉴판 및 안내 자료 제작");
 
   return {
@@ -171,7 +164,7 @@ export function analyzeWithData(
       ? `이번 주 Google Maps에 매장을 등록하세요. ${area.district_name} ${businessType} 중 ${Math.round(bench.google_registration_rate * 100)}%가 이미 등록되어 있습니다. 매장 사진 5장 + 영어 설명 3줄이면 충분합니다.`
       : `Google Maps 매장 정보를 영어로 업데이트하세요. ${area.district_name}의 외국인 비율은 ${Math.round(area.foreign_visitor_ratio * 100)}%로, 영어 정보 추가만으로 검색 노출이 크게 늘어납니다.`,
     potential: `3개월 후 외국인 고객 비율 ${Math.round(fMul * 25 + area.foreign_visitor_ratio * 20)}% 증가, Google Maps 리뷰 월 ${Math.round(bench.avg_google_reviews * 0.3 * tMul)}건 이상, 인스타 노출 월 ${Math.round(bench.avg_instagram_hashtags * 0.5 * tMul)}건+ 기대`,
-    cta_message: ctaMessages[grade],
+    cta_message: CTA_MESSAGES[grade],
     data_source: "estimated",
     data_freshness: `${area.district_name} 상권 데이터 기준`,
   } as AnalysisResult & { data_source: string; data_freshness: string };

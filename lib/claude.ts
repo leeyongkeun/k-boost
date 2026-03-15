@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { AnalysisResult, PlatformInfo, ScoreBreakdown, KeyMetric } from "./types";
+import { AnalysisResult, PlatformInfo } from "./types";
 import { logError } from "./error-logger";
+import { normalizeBreakdown, calcScoreAndGrade, parseAiJson, validateParsed, buildAnalysisResult } from "./normalize-result";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -135,62 +136,25 @@ ${platformSummary}
       console.error("[claude] Response was truncated (max_tokens reached)");
     }
 
-    const jsonStr = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-    const parsed = JSON.parse(jsonStr);
-
-    if (!parsed.score_breakdown || !parsed.title || !parsed.summary) {
-      console.error("[claude] Analysis validation failed:", parsed);
+    const parsed = parseAiJson(text);
+    if (!parsed || !validateParsed(parsed)) {
+      console.error("[claude] Analysis validation failed");
       return null;
     }
 
-    if (!Array.isArray(parsed.improvements) || parsed.improvements.length === 0) {
-      console.error("[claude] Improvements validation failed");
-      return null;
-    }
+    const breakdown = normalizeBreakdown(parsed.score_breakdown as Record<string, number>);
+    const { score, grade } = calcScoreAndGrade(breakdown);
 
-    const breakdown: ScoreBreakdown = {
-      online_presence: Math.min(20, Math.max(0, parsed.score_breakdown.online_presence)),
-      review_status: Math.min(20, Math.max(0, parsed.score_breakdown.review_status)),
-      visual_content: Math.min(15, Math.max(0, parsed.score_breakdown.visual_content)),
-      accessibility: Math.min(20, Math.max(0, parsed.score_breakdown.accessibility)),
-      k_potential: Math.min(15, Math.max(0, parsed.score_breakdown.k_potential)),
-      owner_readiness: Math.min(10, Math.max(0, parsed.score_breakdown.owner_readiness)),
-    };
-
-    const score = Object.values(breakdown).reduce((a, b) => a + b, 0);
-
-    let grade: AnalysisResult["grade"] = "D";
-    if (score >= 85) grade = "S";
-    else if (score >= 65) grade = "A";
-    else if (score >= 45) grade = "B";
-    else if (score >= 25) grade = "C";
-
-    const ctaMessages: Record<string, string> = {
-      S: "K-BOOST 프리미엄 분석 받아보기",
-      A: "K-BOOST 맞춤 전략 확인하기",
-      B: "K-BOOST 시작 가이드 받기",
-      C: "K-BOOST 무료 상담 받기",
-      D: "K-BOOST 기본 진단 받기",
-    };
-
-    const keyMetrics: KeyMetric[] = (parsed.key_metrics || []).map(
-      (m: { label: string; value: string; status: "good" | "warning" | "critical"; detail: string }) => ({
-        label: m.label,
-        value: m.value,
-        status: m.status,
-        detail: m.detail,
-      })
-    );
-
-    return {
-      grade,
+    return buildAnalysisResult({
+      parsed,
+      breakdown,
       score,
-      score_breakdown: breakdown,
-      store_name: input.storeName,
-      business_type: input.businessType,
-      store_address: input.address || undefined,
-      store_phone: input.phone || undefined,
-      instagram_url: input.instagramUrl,
+      grade,
+      storeName: input.storeName,
+      businessType: input.businessType,
+      address: input.address,
+      phone: input.phone,
+      instagramUrl: input.instagramUrl,
       platforms: input.platforms.map((p) => ({
         name: p.name,
         registered: p.registered,
@@ -201,14 +165,7 @@ ${platformSummary}
         link: p.link,
         category: p.category,
       })),
-      title: parsed.title,
-      summary: parsed.summary,
-      key_metrics: keyMetrics,
-      improvements: parsed.improvements.slice(0, 3),
-      action_plan: parsed.action_plan,
-      potential: parsed.potential,
-      cta_message: ctaMessages[grade],
-    };
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error("[claude] Analysis error:", msg);

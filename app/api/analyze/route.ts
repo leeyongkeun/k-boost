@@ -4,14 +4,34 @@ import { QuizAnswers } from "@/lib/types";
 import { lookupStore } from "@/lib/data-lookup";
 import { analyzeWithData } from "@/lib/analyze-with-data";
 import { logError } from "@/lib/error-logger";
+import {
+  PLATFORM_SEARCH_TIMEOUT_MS,
+  GLOBAL_ANALYSIS_TIMEOUT_MS,
+  STORE_INFO_MAX_LENGTH,
+  RATE_LIMIT_MAX,
+  RATE_LIMIT_WINDOW_MS,
+} from "@/lib/constants";
 
 // 분석 모드: "api" (네이버/카카오 API + Claude 분석) | "gemini_search" (Gemini 웹검색) | "db" (DB 목데이터)
 const ANALYZE_MODE = process.env.ANALYZE_MODE || "db";
 
-const PLATFORM_SEARCH_TIMEOUT_MS = 14400;
-const GLOBAL_ANALYSIS_TIMEOUT_MS = 18000;
+// --- Rate Limiter (인메모리, IP 기반) ---
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
-// 전체 분석에 18초 타임아웃
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+// 전체 분석에 타임아웃
 function withGlobalTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
@@ -23,6 +43,18 @@ function withGlobalTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate Limit 체크
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || request.headers.get("x-real-ip")
+      || "unknown";
+
+    if (isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: "요청이 너무 많습니다. 1분 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+
     const { answers } = (await request.json()) as { answers: QuizAnswers };
 
     // 필수 질문 검증
@@ -40,6 +72,15 @@ export async function POST(request: NextRequest) {
     }
 
     const storeInfo = answers.store_info || "";
+
+    // 입력 길이 검증
+    if (storeInfo.length > STORE_INFO_MAX_LENGTH) {
+      return NextResponse.json(
+        { error: `매장 정보는 ${STORE_INFO_MAX_LENGTH}자 이내로 입력해주세요.` },
+        { status: 400 }
+      );
+    }
+
     const storeName = storeInfo.split(/[,，]/)[0].trim() || storeInfo.trim();
     const foreignRatio = answers.foreign_ratio || "very_low";
     const changeWillingness = answers.change_willingness || "low";

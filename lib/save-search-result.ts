@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { PlatformSearchResult } from "./platform-search";
+import { CACHE_TTL_DAYS } from "./constants";
 
 interface SaveSearchParams {
   searchKeyword: string;
@@ -74,8 +75,6 @@ export function saveSearchResult(params: SaveSearchParams): void {
       }
     });
 }
-
-const CACHE_TTL_DAYS = 7;
 
 /** 캐시 조회: 같은 keyword로 7일 이내 검색 결과가 있으면 반환 */
 export async function getCachedResult(searchKeyword: string): Promise<PlatformSearchResult | null> {

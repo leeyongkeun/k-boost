@@ -1,7 +1,7 @@
 import { PlatformInfo } from "./types";
 import { logError } from "./error-logger";
 
-const API_TIMEOUT_MS = 6000;
+import { API_TIMEOUT_MS } from "./constants";
 
 interface NaverItem {
   title: string;
