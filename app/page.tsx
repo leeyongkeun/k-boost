@@ -208,7 +208,7 @@ export default function Home() {
             <button
               onClick={handleSubmit}
               className={`
-                w-full mt-8 sm:mt-10 mb-16 sm:mb-20 py-4 sm:py-[18px] rounded-2xl border-none text-[16px] sm:text-[17px] font-bold cursor-pointer transition-all active:scale-[0.98]
+                w-full mt-8 sm:mt-10 mb-8 sm:mb-10 py-4 sm:py-[18px] rounded-2xl border-none text-[16px] sm:text-[17px] font-bold cursor-pointer transition-all active:scale-[0.98]
                 ${allAnswered
                   ? "bg-gradient-to-br from-purple-600 to-pink-500 text-white shadow-[0_4px_30px_rgba(124,58,237,0.4)] hover:shadow-[0_4px_40px_rgba(124,58,237,0.6)]"
                   : "bg-white/[0.06] text-white/20 cursor-default"
