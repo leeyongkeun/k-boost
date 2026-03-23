@@ -27,7 +27,7 @@ export default function QuizLoading() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70dvh] text-center px-6">
       <div className="relative w-[100px] h-[100px] mb-8">
-        <div className="w-[100px] h-[100px] rounded-full border-[3px] border-white/[0.06] border-t-purple-600 animate-spin" />
+        <div className="w-[100px] h-[100px] rounded-full border-[3px] border-white/[0.06] border-t-[#C50337] animate-spin" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[36px]">
           🔍
         </div>
@@ -41,7 +41,7 @@ export default function QuizLoading() {
           <div
             key={i}
             className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
-              i <= loadingIdx ? "bg-purple-600" : "bg-white/10"
+              i <= loadingIdx ? "bg-[#C50337]" : "bg-white/10"
             }`}
           />
         ))}

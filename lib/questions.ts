@@ -13,10 +13,9 @@ export const QUESTIONS: Question[] = [
     type: "radio",
     question: "현재 외국인 손님 비율은?",
     options: [
-      { label: "거의 없음", value: "very_low", emoji: "😅" },
-      { label: "~30%", value: "low", emoji: "🤔" },
-      { label: "~60%", value: "medium", emoji: "😊" },
-      { label: "60%+", value: "high", emoji: "🔥" },
+      { label: "전혀 없음", value: "very_low", emoji: "😅" },
+      { label: "거의 없음", value: "low", emoji: "🤔" },
+      { label: "어느 정도", value: "medium", emoji: "😊" },
     ],
   },
   {

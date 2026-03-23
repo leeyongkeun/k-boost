@@ -3,11 +3,13 @@
 import { useState, useRef } from "react";
 import { QUESTIONS } from "@/lib/questions";
 import { QuizAnswers, AnalysisResult } from "@/lib/types";
+import Landing from "@/components/Landing";
 import QuizLoading from "@/components/QuizLoading";
 import QuizResult from "@/components/QuizResult";
+import Completion from "@/components/Completion";
 
 export default function Home() {
-  const [phase, setPhase] = useState<"quiz" | "loading" | "result">("quiz");
+  const [phase, setPhase] = useState<"landing" | "quiz" | "loading" | "result" | "completion">("landing");
   const [answers, setAnswers] = useState<QuizAnswers>({});
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -78,58 +80,68 @@ export default function Home() {
     setPhase("quiz");
   };
 
+  const goHome = () => {
+    setAnswers({});
+    setResult(null);
+    setError(null);
+    setShowValidation(false);
+    setResultId(null);
+    setPhase("landing");
+  };
+
   return (
     <div
       ref={containerRef}
-      className="min-h-dvh bg-gradient-to-br from-[#0c0818] via-[#160f30] via-[70%] to-[#291660] text-white overflow-y-auto relative hide-scrollbar"
+      className="min-h-dvh bg-[linear-gradient(172deg,#010e2a_0%,#021C4F_35%,#0a2a6b_70%,#031d52_100%)] text-white overflow-y-auto relative hide-scrollbar"
     >
-      {/* Background orbs */}
-      <div className="fixed -top-[100px] -right-[100px] w-[300px] h-[300px] rounded-full bg-[radial-gradient(circle,rgba(124,58,237,0.15)_0%,transparent_65%)] pointer-events-none" />
-      <div className="fixed -bottom-[80px] -left-[80px] w-[250px] h-[250px] rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.1)_0%,transparent_65%)] pointer-events-none" />
+      {phase === "landing" && (
+        <Landing onStart={() => setPhase("quiz")} />
+      )}
+
+      {phase === "completion" && (
+        <Completion onHome={goHome} />
+      )}
 
       {/* Responsive container */}
-      <div className="w-full max-w-[540px] mx-auto px-8 sm:px-12 md:px-14 relative z-[1] safe-top">
+      <div className={`w-full max-w-[540px] mx-auto px-8 sm:px-12 md:px-14 relative z-[1] safe-top ${phase === "landing" || phase === "completion" ? "hidden" : ""}`}>
         {phase === "quiz" && (
-          <div className="pt-10 sm:pt-14 md:pt-20 pb-20 sm:pb-24 safe-bottom">
-            {/* Header */}
-            <div className="text-center mb-8 sm:mb-10">
-              <div className="text-[40px] sm:text-[48px] mb-3 animate-float">🚀</div>
-              <h1 className="font-outfit text-[26px] sm:text-[32px] font-black leading-tight mb-2 bg-gradient-to-br from-purple-300 via-pink-300 to-yellow-400 bg-clip-text text-transparent">
-                K-BOOST
-              </h1>
-              <p className="text-white/40 text-[14px] sm:text-[15px] leading-relaxed">
-                우리 매장의 K-글로벌 잠재력을 확인해보세요
-              </p>
-              <p className="text-white/25 text-[11px] sm:text-xs mt-1.5">
-                3가지 질문 · 30초 · AI 수치 분석
-              </p>
+          <div className="pt-10 sm:pt-14 md:pt-20 pb-20 sm:pb-24 safe-bottom relative">
+            {/* Background particles */}
+            <div className="absolute top-[12%] left-[10%] w-[3px] h-[3px] rounded-full bg-white/[0.12] animate-[floatParticle_7s_ease-in-out_infinite]" />
+            <div className="absolute top-[22%] right-[15%] w-[2px] h-[2px] rounded-full bg-white/[0.12] animate-[floatParticle_9s_ease-in-out_infinite_1.5s]" />
+
+            {/* Header — matches page2.html */}
+            <div className="text-center mb-6 sm:mb-8 animate-fade-down">
+              <div className="text-[18px] font-medium text-white/55 leading-[1.7] tracking-[-0.2px]">매장명만 입력하세요</div>
+              <div className="text-[21px] font-extrabold text-white leading-[1.7] tracking-[-0.3px]">외국인 고객이 찾아오는 K화 전략</div>
+              <div className="text-[18px] font-medium text-white/55 leading-[1.7] tracking-[-0.2px]">바로 확인 가능합니다</div>
             </div>
 
             {/* All Questions Inline */}
-            <div className="space-y-10 sm:space-y-12">
+            <div className="space-y-6 sm:space-y-7">
               {/* Q1: Store Info */}
-              <div>
-                <label className="text-[14px] sm:text-[15px] font-semibold mb-2 sm:mb-2.5 block">
+              <div className="animate-[fadeUp_0.6s_ease-out_0.15s_both]">
+                <div className="text-[16px] font-bold text-white mb-[5px] tracking-[-0.3px]">
                   {QUESTIONS[0].question}
-                </label>
+                </div>
                 {QUESTIONS[0].sub && (
-                  <p className="text-[11px] sm:text-[12px] text-white/30 mb-2.5 sm:mb-3">{QUESTIONS[0].sub}</p>
+                  <div className="text-[12px] font-normal text-white/[0.38] mb-2.5 tracking-[-0.1px]">{QUESTIONS[0].sub}</div>
                 )}
                 <input
                   type="text"
                   placeholder={QUESTIONS[0].placeholder}
                   value={answers.store_info || ""}
                   onChange={(e) => handleAnswer("store_info", e.target.value)}
-                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl border border-white/10 bg-white/[0.05] text-white text-[16px] outline-none transition-colors focus:border-purple-600/50 focus:bg-purple-600/[0.08] placeholder:text-white/20"
+                  className="w-full py-[15px] px-4 rounded-[14px] border border-white/[0.08] bg-white/[0.04] text-white text-[14px] font-normal outline-none transition-all focus:border-white/40 focus:bg-white/[0.06] placeholder:text-white/[0.38]"
                 />
               </div>
 
-              {/* Q2: Foreign Ratio (responsive chips) */}
-              <div>
-                <label className="text-[14px] sm:text-[15px] font-semibold mb-2.5 sm:mb-3 block">
+              {/* Q2: Foreign Ratio */}
+              <div className="animate-[fadeUp_0.6s_ease-out_0.3s_both]">
+                <div className="text-[16px] font-bold text-white mb-2.5 tracking-[-0.3px]">
                   {QUESTIONS[1].question}
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+                </div>
+                <div className="grid grid-cols-3 gap-2.5">
                   {QUESTIONS[1].options?.map((opt) => {
                     const selected = answers.foreign_ratio === opt.value;
                     return (
@@ -137,29 +149,29 @@ export default function Home() {
                         key={opt.value}
                         onClick={() => handleAnswer("foreign_ratio", opt.value)}
                         className={`
-                          min-h-[64px] sm:min-h-[72px] py-3 sm:py-3.5 px-3 sm:px-2 rounded-2xl text-center cursor-pointer transition-all active:scale-95
+                          flex flex-col items-center justify-center gap-[7px] py-4 px-1.5 rounded-[14px] cursor-pointer transition-all active:scale-[0.96] select-none
                           ${selected
-                            ? "border-2 border-purple-500/70 bg-purple-600/15"
-                            : "border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06]"
+                            ? "border border-white/45 bg-white/[0.07] shadow-[0_0_20px_rgba(255,255,255,0.06)]"
+                            : "border border-white/[0.08] bg-white/[0.04]"
                           }
                         `}
                       >
-                        <div className="text-xl sm:text-2xl mb-1">{opt.emoji}</div>
-                        <div className={`text-[12px] sm:text-[13px] font-semibold leading-tight ${selected ? "text-purple-300" : "text-white/55"}`}>
+                        <span className="text-[26px] leading-none">{opt.emoji}</span>
+                        <span className={`text-[12.5px] font-semibold tracking-[-0.2px] whitespace-nowrap transition-colors ${selected ? "text-white" : "text-white/65"}`}>
                           {opt.label}
-                        </div>
+                        </span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Q3: Willingness (responsive chips) */}
-              <div>
-                <label className="text-[14px] sm:text-[15px] font-semibold mb-2.5 sm:mb-3 block">
+              {/* Q3: Willingness */}
+              <div className="animate-[fadeUp_0.6s_ease-out_0.45s_both]">
+                <div className="text-[16px] font-bold text-white mb-2.5 tracking-[-0.3px]">
                   {QUESTIONS[2].question}
-                </label>
-                <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+                </div>
+                <div className="grid grid-cols-3 gap-2.5">
                   {QUESTIONS[2].options?.map((opt) => {
                     const selected = answers.change_willingness === opt.value;
                     return (
@@ -167,17 +179,17 @@ export default function Home() {
                         key={opt.value}
                         onClick={() => handleAnswer("change_willingness", opt.value)}
                         className={`
-                          min-h-[64px] sm:min-h-[72px] py-3 sm:py-3.5 px-2 rounded-2xl text-center cursor-pointer transition-all active:scale-95
+                          flex flex-col items-center justify-center gap-[7px] py-4 px-1.5 rounded-[14px] cursor-pointer transition-all active:scale-[0.96] select-none
                           ${selected
-                            ? "border-2 border-purple-500/70 bg-purple-600/15"
-                            : "border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06]"
+                            ? "border border-white/45 bg-white/[0.07] shadow-[0_0_20px_rgba(255,255,255,0.06)]"
+                            : "border border-white/[0.08] bg-white/[0.04]"
                           }
                         `}
                       >
-                        <div className="text-xl sm:text-2xl mb-1">{opt.emoji}</div>
-                        <div className={`text-[12px] sm:text-[13px] font-semibold leading-tight ${selected ? "text-purple-300" : "text-white/55"}`}>
+                        <span className="text-[26px] leading-none">{opt.emoji}</span>
+                        <span className={`text-[12.5px] font-semibold tracking-[-0.2px] whitespace-nowrap transition-colors ${selected ? "text-white" : "text-white/65"}`}>
                           {opt.label}
-                        </div>
+                        </span>
                       </button>
                     );
                   })}
@@ -204,26 +216,34 @@ export default function Home() {
               </div>
             )}
 
-            {/* Submit */}
-            <button
-              onClick={handleSubmit}
-              className={`
-                w-full mt-8 sm:mt-10 mb-8 sm:mb-10 py-4 sm:py-[18px] rounded-2xl border-none text-[16px] sm:text-[17px] font-bold cursor-pointer transition-all active:scale-[0.98]
-                ${allAnswered
-                  ? "bg-gradient-to-br from-purple-600 to-pink-500 text-white shadow-[0_4px_30px_rgba(124,58,237,0.4)] hover:shadow-[0_4px_40px_rgba(124,58,237,0.6)]"
-                  : "bg-white/[0.06] text-white/20 cursor-default"
-                }
-              `}
-            >
-              결과 확인하기
-            </button>
+            {/* Submit — matches page2.html CTA */}
+            <div className="w-full max-w-[340px] mx-auto mt-8 sm:mt-10 mb-8 sm:mb-10 animate-[fadeUp_0.6s_ease-out_0.55s_both]">
+              <button
+                onClick={handleSubmit}
+                className={`
+                  flex items-center justify-center gap-0.5 w-full py-[18px] px-8 rounded-2xl border-none text-[17px] font-bold tracking-[0.3px] cursor-pointer relative overflow-hidden transition-all active:scale-[0.97]
+                  ${allAnswered
+                    ? "text-white bg-gradient-to-br from-[#C50337] via-[#e8254d] to-[#C50337] bg-[length:200%_200%] animate-shimmer-btn shadow-[0_4px_20px_rgba(197,3,55,0.45),0_10px_40px_rgba(197,3,55,0.18),inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-2px_0_rgba(0,0,0,0.12)]"
+                    : "text-white/30 bg-white/[0.06] cursor-not-allowed shadow-none"
+                  }
+                `}
+              >
+                {allAnswered && <span className="absolute top-0 -left-full w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sheen" />}
+                <span className="text-[19px] mr-1">📊</span>
+                결과 확인
+                <span className="ml-1.5 font-normal opacity-75">→</span>
+              </button>
+              <div className="mt-3 text-center text-[11px] font-normal text-white/[0.38] tracking-[0.3px]">
+                K-BOOST 공식프로그램<span className="inline-block w-[3px] h-[3px] bg-white/[0.38] rounded-full mx-1.5 align-middle" />10초 정밀진단
+              </div>
+            </div>
           </div>
         )}
 
         {phase === "loading" && <QuizLoading />}
 
         {phase === "result" && result && (
-          <QuizResult result={result} onRestart={restart} resultId={resultId} />
+          <QuizResult result={result} onRestart={restart} resultId={resultId} onComplete={() => setPhase("completion")} />
         )}
       </div>
     </div>
