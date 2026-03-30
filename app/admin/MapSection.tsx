@@ -54,7 +54,7 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
     const map = L.map(mapRef.current, {
       zoomControl: true,
       attributionControl: false,
-    }).setView([37.5665, 126.978], 11);
+    }).setView([37.5704, 126.9920], 14);
 
     leafletMap.current = map;
 
