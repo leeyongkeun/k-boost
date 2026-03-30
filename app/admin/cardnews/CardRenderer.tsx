@@ -51,7 +51,7 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
             margin: 40,
             borderRadius: 32,
             border: "1px solid rgba(255,255,255,0.2)",
-            background: "rgba(0,0,0,0.3)",
+            background: "rgba(0,0,0,0.15)",
             backdropFilter: "blur(2px)",
           }}
         >
