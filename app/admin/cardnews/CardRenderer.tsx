@@ -40,14 +40,14 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
               width: 1080,
               height: 1080,
               objectFit: "cover",
-              opacity: 0.25,
+              opacity: 0.55,
             }}
           />
         )}
         {/* Dark overlay for text readability */}
         <div
           className="absolute inset-0"
-          style={{ background: "rgba(0,0,0,0.45)" }}
+          style={{ background: "rgba(0,0,0,0.35)" }}
         />
         {/* Decorative circles */}
         <div
