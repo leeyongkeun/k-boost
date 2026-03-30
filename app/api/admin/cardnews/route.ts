@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { isValidSession } from "@/lib/admin-auth";
 import { CardNewsItem } from "@/lib/cardnews-types";
 import { getGradientKey } from "@/lib/cardnews-gradients";
+import { pickRandomTopics } from "@/lib/cardnews-topics";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -27,34 +28,39 @@ export async function POST(req: NextRequest) {
       day: "numeric",
     });
 
-    const prompt = `당신은 한국 관광산업 콘텐츠 전문가입니다. 오늘(${today}) 기준으로 최신 한국 관광 뉴스를 웹 검색하여 인스타그램 카드뉴스 10장 분량의 콘텐츠를 만들어주세요.
+    // 10개 카테고리에서 랜덤 8개 주제 선정
+    const selectedTopics = pickRandomTopics(8);
+    const topicList = selectedTopics
+      .map((t, i) => `${i + 1}. [${t.category}] ${t.topic}`)
+      .join("\n");
 
-## 검색 키워드 (이 주제들로 검색하세요)
-- 한국 외국인 관광객 최신 뉴스
-- 방한 외국인 소비 트렌드 2025 2026
-- K-관광 성장 통계
-- 외국인 맛집 핫플레이스
-- 한국 관광산업 전망
-- 인바운드 관광 정책
+    const prompt = `당신은 한국 관광산업 콘텐츠 전문가입니다. 오늘(${today}) 기준으로 아래 주제들을 웹 검색하여 인스타그램 카드뉴스 10장 분량의 콘텐츠를 만들어주세요.
+
+## 오늘의 주제 (각 주제별로 반드시 웹 검색하세요)
+${topicList}
+
+각 주제를 검색할 때 최신 뉴스, 통계, 수치 데이터를 찾아주세요.
+검색 결과가 부족한 주제는 관련 키워드를 변형하여 재검색하세요.
 
 ## 카드뉴스 구성
 정확히 10장의 카드를 만들어주세요:
 
 1. **카드 1 (cover)**: 커버. headline에 오늘 날짜와 "K-관광 트렌드"를 포함. bodyPoints는 이번 세트의 핵심 키워드 3개.
-2. **카드 2~9 (content)**: 각각 다른 뉴스/트렌드 주제.
+2. **카드 2~9 (content)**: 위 8개 주제를 각각 1장씩 다룹니다.
    - headline: 임팩트 있는 제목 (최대 25자)
    - subHeadline: 부제목 (최대 30자)
-   - statValue: 핵심 수치 1개 (예: "1,750만명", "+23%", "4.2조원")
+   - statValue: 핵심 수치 1개 (예: "1,750만명", "+23%", "4.2조원") — 반드시 검색에서 찾은 실제 수치
    - statLabel: 수치 설명 (예: "2025 방한 외국인")
    - bodyPoints: 핵심 포인트 2~3개 (각 최대 35자)
-   - source: 출처 (예: "한국관광공사", "문화체육관광부")
+   - source: 출처 (예: "한국관광공사", "문화체육관광부", "한국은행" 등)
 3. **카드 10 (cta)**: CTA 카드. headline: "우리 매장도 외국인 고객을 유치할 수 있습니다". bodyPoints에 K-BOOST 서비스 소개 3줄.
 
 ## 콘텐츠 톤앤매너
-- 타겟: 한국 매장 사장님 (카페, 식당, 뷰티샵 등)
+- 타겟: 한국 매장 사장님 (카페, 식당, 뷰티샵, 헤어샵 등)
 - 메시지: "관광산업이 이렇게 뜨고 있으니, 우리 매장도 준비하자"
 - 숫자/데이터 중심으로 신뢰감 있게
 - 너무 딱딱하지 않고, 인스타그램에 맞는 가벼운 톤
+- 매장 사장님이 "이 기회를 놓치면 안 되겠다"고 느낄 수 있게
 
 ## 응답 형식
 반드시 아래 JSON 배열로만 응답하세요. 다른 텍스트 없이 JSON만 출력하세요.
