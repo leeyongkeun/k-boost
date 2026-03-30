@@ -50,8 +50,56 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
+  const type = searchParams.get("type");
 
-  // 단건 조회
+  // ── 카드뉴스 이력 조회 ──
+  if (type === "cardnews_sets") {
+    const { data, error } = await supabase
+      .from("cardnews_sets")
+      .select("id, created_at, card_count")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) return NextResponse.json({ error: "조회 실패" }, { status: 500 });
+
+    const setIds = (data || []).map((s) => s.id);
+    let covers: Record<string, { headline: string; image_url: string | null }> = {};
+    if (setIds.length > 0) {
+      const { data: coverData } = await supabase
+        .from("cardnews_cards")
+        .select("set_id, headline, image_url")
+        .in("set_id", setIds)
+        .eq("card_index", 0);
+      if (coverData) {
+        covers = Object.fromEntries(
+          coverData.map((c) => [c.set_id, { headline: c.headline, image_url: c.image_url }])
+        );
+      }
+    }
+
+    const sets = (data || []).map((s) => ({
+      ...s,
+      coverHeadline: covers[s.id]?.headline || null,
+      coverImage: covers[s.id]?.image_url || null,
+    }));
+    return NextResponse.json({ sets });
+  }
+
+  if (type === "cardnews_detail") {
+    const setId = searchParams.get("setId");
+    if (!setId) return NextResponse.json({ error: "setId 필요" }, { status: 400 });
+
+    const { data, error } = await supabase
+      .from("cardnews_cards")
+      .select("*")
+      .eq("set_id", setId)
+      .order("card_index", { ascending: true });
+
+    if (error) return NextResponse.json({ error: "조회 실패" }, { status: 500 });
+    return NextResponse.json({ cards: data });
+  }
+
+  // ── 기존: 단건 조회 ──
   const detailId = searchParams.get("id");
   if (detailId) {
     const { data, error } = await supabase

@@ -81,7 +81,7 @@ export default function CardNewsPage() {
   const fetchHistory = useCallback(async () => {
     setHistoryLoading(true);
     try {
-      const res = await fetch("/api/admin/cardnews/history", {
+      const res = await fetch("/api/admin?type=cardnews_sets", {
         headers: { "x-admin-token": token },
       });
       if (res.ok) {
@@ -99,7 +99,7 @@ export default function CardNewsPage() {
     setSelectedSetId(setId);
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/admin/cardnews/history?setId=${setId}`, {
+      const res = await fetch(`/api/admin?type=cardnews_detail&setId=${setId}`, {
         headers: { "x-admin-token": token },
       });
       if (res.ok) {
