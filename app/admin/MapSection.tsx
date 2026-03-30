@@ -89,9 +89,8 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
       bounds.extend([pin.lat, pin.lng]);
     }
 
-    if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 11 });
-    }
+    // 종로구 인근 고정 — 핀이 있어도 초기 뷰 유지
+    // 사용자가 직접 패닝/줌으로 탐색
 
     return () => {
       map.remove();
