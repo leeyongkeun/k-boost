@@ -137,6 +137,9 @@ export default function CardNewsPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
       setNewsSet(json);
+      if (json.saveError) {
+        setError(`카드 생성 완료 (DB 저장 실패: ${json.saveError})`);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "생성 실패");
     } finally {
