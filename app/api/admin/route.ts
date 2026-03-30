@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
   let query = supabase
     .from("search_results")
     .select(
-      "id, created_at, store_name, business_type, address, score, grade, customer_phone, pdf_sent"
+      "id, created_at, store_name, business_type, address, score, grade, customer_phone, pdf_sent, inbound"
     )
     .order(sortBy, { ascending: sortOrder });
 

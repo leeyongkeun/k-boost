@@ -1,5 +1,55 @@
 # K-BOOST 작업 내역
 
+## 2026-03-23 (12차)
+
+### docs HTML → React 전환 (page1~4 전체)
+- **Landing.tsx** 신규: page1.html 랜딩 페이지 React 변환
+  - 로켓 애니메이션 (float, orbit, exhaust trail)
+  - 카운트다운 타이머, CTA 버튼
+- **page.tsx** 리디자인: page2.html 퀴즈 화면 스타일 적용
+  - phase 관리: landing → quiz → loading → result → completion
+- **QuizResult.tsx** 대폭 변경: page3.html 결과 화면 완전 반영
+  - 매장 프로필, 점수 링, 카테고리 바, 진단 카드, 개선 방향
+  - 매출 부스트 바 (애니메이션), CTA 섹션 (연락처 입력 + 개인정보 동의)
+  - 연락처 자동 하이픈 포맷 (010-0000-0000)
+  - 개인정보 수집 동의 모달
+- **Completion.tsx** 신규: page4.html 신청완료 화면
+  - 체크 아이콘 + confetti 애니메이션 + 완료 메시지
+- **globals.css**: 애니메이션 keyframes 대폭 추가
+  - circleIn, ringFade, confettiPop, rocketFloat, orbitSpin, exhaust 등
+- **questions.ts**: 외국인 비율 옵션 HTML 원본에 맞춰 수정
+  - 4개 → 3개 (전혀 없음 / 거의 없음 / 어느 정도)
+
+### 관리자페이지 (`/admin`)
+- **로그인**: ID/PW 인증 → 세션 토큰 발급 (64자 랜덤)
+  - 로그인 시도 5회 제한 (초과 시 5분 차단)
+  - 세션 4시간 자동 만료
+  - sessionStorage에 토큰 저장 → 새로고침해도 유지
+  - 로그아웃 버튼
+- **리스트 화면**: search_results 테이블 조회
+  - 필터: 등급 / 연락처 유무 / PDF 발송 여부
+  - 정렬: 컬럼 헤더 클릭 (일시, 매장명, 업종, 점수, 등급)
+  - pdf_sent 체크박스 토글 → 즉시 DB UPDATE (optimistic)
+  - 상세보기 아이콘(👁) → 팝업 모달
+- **상세 모달**: 매장 전체 데이터 확인
+  - 매장 정보, 사용자 입력, 네이버/카카오/Google 플랫폼 상세, 고객 정보
+- **UI**: 로켓 이모지 로고, 다크 네이비 테마 통일
+
+### 리드 수집 (Phase 5)
+- **`/api/lead`**: 고객 연락처를 search_results 테이블에 UPDATE
+  - store_name + 최근 1시간 내 row 매칭 (fallback: 최신 row)
+- **DB 스키마 변경** (`scripts/alter-search-results-add-lead.sql`)
+  - `customer_phone TEXT` 컬럼 추가
+  - `pdf_sent BOOLEAN DEFAULT false` 컬럼 추가
+  - partial index: customer_phone IS NOT NULL 조건
+- **RLS**: UPDATE 정책 추가 필요 (`Allow public update`)
+
+### 커밋
+- `974baa3`: 12개 파일 변경, 1810줄 추가
+- origin/master에 push 완료 → Vercel 자동 배포
+
+---
+
 ## 2026-03-15 (11차)
 
 ### 점수 UI 최종 정리

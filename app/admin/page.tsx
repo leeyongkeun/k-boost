@@ -12,6 +12,7 @@ interface SearchResult {
   grade: string | null;
   customer_phone: string | null;
   pdf_sent: boolean | null;
+  inbound: string | null;
 }
 
 interface DetailData {
@@ -388,6 +389,9 @@ export default function AdminPage() {
                   <th className="px-4 py-3 text-white/70 font-medium whitespace-nowrap text-center">
                     PDF 발송
                   </th>
+                  <th className="px-4 py-3 text-white/70 font-medium whitespace-nowrap">
+                    유입경로
+                  </th>
                   <th className="px-4 py-3 text-white/70 font-medium whitespace-nowrap text-center">
                     상세
                   </th>
@@ -396,13 +400,13 @@ export default function AdminPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-12 text-center text-white/40">
+                    <td colSpan={10} className="px-4 py-12 text-center text-white/40">
                       로딩 중...
                     </td>
                   </tr>
                 ) : data.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-12 text-center text-white/40">
+                    <td colSpan={10} className="px-4 py-12 text-center text-white/40">
                       데이터가 없습니다.
                     </td>
                   </tr>
@@ -444,6 +448,9 @@ export default function AdminPage() {
                           onChange={() => togglePdfSent(row.id, row.pdf_sent)}
                           className="w-4 h-4 rounded accent-[#C50337] cursor-pointer"
                         />
+                      </td>
+                      <td className="px-4 py-3 text-white/60 text-sm">
+                        {row.inbound || <span className="text-white/20">-</span>}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <button
@@ -530,6 +537,7 @@ export default function AdminPage() {
                     <span className="text-[13px] font-bold text-white/60">사용자 입력</span>
                     <DetailRow label="외국인 비율" value={detailData.foreign_ratio as string} />
                     <DetailRow label="변경 의향" value={detailData.change_willingness as string} />
+                    <DetailRow label="유입경로" value={detailData.inbound as string} />
                   </div>
 
                   {/* 플랫폼 */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { QUESTIONS } from "@/lib/questions";
 import { QuizAnswers, AnalysisResult } from "@/lib/types";
 import Landing from "@/components/Landing";
@@ -15,7 +15,14 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [showValidation, setShowValidation] = useState(false);
   const [resultId, setResultId] = useState<string | null>(null);
+  const [inbound, setInbound] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ib = params.get("inbound");
+    if (ib) setInbound(ib);
+  }, []);
 
   const allAnswered = QUESTIONS.every((q) => {
     const val = answers[q.id];
@@ -44,7 +51,7 @@ export default function Home() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify({ answers, ...(inbound && { inbound }) }),
       });
 
       const data = await res.json();

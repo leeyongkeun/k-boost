@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { answers } = (await request.json()) as { answers: QuizAnswers };
+    const { answers, inbound } = (await request.json()) as { answers: QuizAnswers; inbound?: string };
 
     // 필수 질문 검증
     const requiredFields = QUESTIONS.map((q) => q.id);
@@ -174,6 +174,7 @@ export async function POST(request: NextRequest) {
           platformData,
           grade: result.grade,
           score: result.score,
+          inbound: inbound || undefined,
         });
       }
 

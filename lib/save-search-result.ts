@@ -9,6 +9,7 @@ interface SaveSearchParams {
   platformData: PlatformSearchResult;
   grade?: string;
   score?: number;
+  inbound?: string;
 }
 
 /** fire-and-forget: 검색 결과를 search_results 테이블에 저장 */
@@ -66,6 +67,9 @@ export function saveSearchResult(params: SaveSearchParams): void {
       // 분석 결과
       grade: params.grade || null,
       score: params.score || null,
+
+      // 유입경로
+      inbound: params.inbound || null,
     })
     .then(({ error }) => {
       if (error) {
