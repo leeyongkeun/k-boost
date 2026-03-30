@@ -270,6 +270,12 @@ export default function AdminPage() {
             <span className="text-white/60 text-sm">
               총 {data.length}건
             </span>
+            <a
+              href="/admin/cardnews"
+              className="px-4 py-2 rounded-lg bg-[#C50337]/20 hover:bg-[#C50337]/30 text-[#e8254d] text-sm font-semibold transition-colors"
+            >
+              📰 카드뉴스
+            </a>
             <button
               onClick={fetchData}
               className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors cursor-pointer"
