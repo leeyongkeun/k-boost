@@ -55,12 +55,35 @@ ${topicList}
    - source: 출처 (예: "한국관광공사", "문화체육관광부", "한국은행" 등)
 3. **카드 10 (cta)**: CTA 카드. headline: "우리 매장도 외국인 고객을 유치할 수 있습니다". bodyPoints에 K-BOOST 서비스 소개 3줄.
 
+## 헤드라인 작성법 (매우 중요!)
+SNS는 도파민 고자극 시대입니다. 일반적인 뉴스 헤드라인으로는 다음 장을 안 넘깁니다.
+아래 패턴을 반드시 사용하세요:
+
+- **긴급성/마감**: "3월까지만 적용되는 자영업자 꿀팁", "이번 달 안에 안 하면 늦습니다"
+- **충격/위기감**: "현재 자영업자들 ㅈ된 이유", "이거 모르면 매출 반토막"
+- **숫자 강조**: "매출 340% 올린 카페의 비밀", "외국인 1,750만명이 쏟아진다"
+- **호기심 유발**: "일본은 되는데 한국은 안 되는 이유", "옆 가게만 외국인이 몰리는 진짜 이유"
+- **비교/대조**: "구글맵 등록한 매장 vs 안 한 매장, 매출 차이"
+- **꿀팁/리스트**: "외국인이 한국에서 꼭 하는 것 TOP5", "사장님이 모르는 무료 마케팅 3가지"
+- **트렌드 알림**: "요즘 외국인들 한국 와서 이것만 합니다", "2026 대박 터질 관광 업종"
+
+절대 "~에 대해 알아봅시다", "~의 현황" 같은 딱딱한 뉴스 제목 쓰지 마세요.
+사장님이 스크롤 멈추고 "어? 이거 뭐지?" 하게 만드세요.
+
 ## 콘텐츠 톤앤매너
 - 타겟: 한국 매장 사장님 (카페, 식당, 뷰티샵, 헤어샵 등)
 - 메시지: "관광산업이 이렇게 뜨고 있으니, 우리 매장도 준비하자"
 - 숫자/데이터 중심으로 신뢰감 있게
-- 너무 딱딱하지 않고, 인스타그램에 맞는 가벼운 톤
+- 반말 아닌 존댓말, 하지만 친근하고 직설적으로
 - 매장 사장님이 "이 기회를 놓치면 안 되겠다"고 느낄 수 있게
+- FOMO(놓칠까봐 불안한 심리)를 자극하세요
+- 핵심 목표 3가지: ① 다음 장을 넘기게 ② 유익해서 저장하게 ③ 주변에 공유하게
+- 각 카드가 독립적으로도 가치 있지만, 다음 카드가 궁금해지는 흐름을 만드세요
+
+## 배경 이미지 키워드
+각 카드에 imageKeyword 필드를 추가하세요. 카드 내용에 맞는 영어 검색 키워드 1~2개입니다.
+예: "korea tourism street", "korean cafe interior", "myeongdong shopping", "korean food market"
+이 키워드로 배경 사진을 검색합니다.
 
 ## 응답 형식
 반드시 아래 JSON 배열로만 응답하세요. 다른 텍스트 없이 JSON만 출력하세요.
@@ -74,7 +97,8 @@ ${topicList}
     "bodyPoints": ["string", "string", "string"],
     "statValue": "string (optional)",
     "statLabel": "string (optional)",
-    "source": "string (optional)"
+    "source": "string (optional)",
+    "imageKeyword": "string (영어, 배경 이미지 검색용)"
   },
   ... (총 10개)
 ]
@@ -83,7 +107,10 @@ ${topicList}
 - 반드시 10개의 카드를 생성하세요.
 - 검색으로 찾은 실제 뉴스와 데이터만 사용하세요.
 - index는 0부터 9까지.
-- type은 index 0 = "cover", index 1~8 = "content", index 9 = "cta"`;
+- type은 index 0 = "cover", index 1~8 = "content", index 9 = "cta"
+- 핵심 목표: 사람들이 다음 장을 넘기고, 유익해서 저장하고, 공유하게 만드세요.
+- 각 카드의 마지막 bodyPoint에 "다음 장에서 더 자세히 →" 같은 넘기기 유도 문구를 넣어도 좋습니다.
+- imageKeyword는 반드시 영어로, 해당 카드 내용에 맞는 한국 관광 관련 이미지 검색어를 작성하세요.`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
@@ -102,17 +129,22 @@ ${topicList}
     }
 
     // 정규화 + gradient 배정
-    const cards: CardNewsItem[] = rawCards.slice(0, 10).map((card, i) => ({
-      index: i,
-      type: i === 0 ? "cover" : i === 9 ? "cta" : "content",
-      headline: card.headline || "",
-      subHeadline: card.subHeadline || undefined,
-      bodyPoints: Array.isArray(card.bodyPoints) ? card.bodyPoints : [],
-      statValue: card.statValue || undefined,
-      statLabel: card.statLabel || undefined,
-      source: card.source || undefined,
-      gradientKey: getGradientKey(i),
-    }));
+    const cards: CardNewsItem[] = rawCards.slice(0, 10).map((card, i) => {
+      const keyword = (card as Record<string, unknown>).imageKeyword as string || "korea tourism";
+      return {
+        index: i,
+        type: i === 0 ? "cover" : i === 9 ? "cta" : "content",
+        headline: card.headline || "",
+        subHeadline: card.subHeadline || undefined,
+        bodyPoints: Array.isArray(card.bodyPoints) ? card.bodyPoints : [],
+        statValue: card.statValue || undefined,
+        statLabel: card.statLabel || undefined,
+        source: card.source || undefined,
+        gradientKey: getGradientKey(i),
+        imageKeyword: keyword,
+        imageUrl: `https://source.unsplash.com/1080x1080/?${encodeURIComponent(keyword)}`,
+      };
+    });
 
     return NextResponse.json({
       generatedAt: new Date().toISOString(),

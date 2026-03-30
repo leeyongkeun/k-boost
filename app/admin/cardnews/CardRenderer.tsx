@@ -28,9 +28,31 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
         }}
         className="relative overflow-hidden flex flex-col"
       >
+        {/* Background image */}
+        {card.imageUrl && (
+          <img
+            src={card.imageUrl}
+            alt=""
+            crossOrigin="anonymous"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: 1080,
+              height: 1080,
+              objectFit: "cover",
+              opacity: 0.25,
+            }}
+          />
+        )}
+        {/* Dark overlay for text readability */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "rgba(0,0,0,0.45)" }}
+        />
         {/* Decorative circles */}
         <div
-          className="absolute rounded-full opacity-[0.06]"
+          className="absolute rounded-full opacity-[0.08]"
           style={{
             width: 500,
             height: 500,
@@ -40,7 +62,7 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
           }}
         />
         <div
-          className="absolute rounded-full opacity-[0.04]"
+          className="absolute rounded-full opacity-[0.05]"
           style={{
             width: 350,
             height: 350,

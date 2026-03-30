@@ -8,6 +8,8 @@ export interface CardNewsItem {
   statLabel?: string;
   source?: string;
   gradientKey: string;
+  imageKeyword?: string;
+  imageUrl?: string;
 }
 
 export interface CardNewsSet {
