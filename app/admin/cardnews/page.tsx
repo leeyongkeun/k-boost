@@ -18,6 +18,8 @@ export default function CardNewsPage() {
   const [error, setError] = useState("");
   const [downloading, setDownloading] = useState<number | "all" | null>(null);
   const [previewCard, setPreviewCard] = useState<CardNewsItem | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadDone, setUploadDone] = useState(false);
   const [tab, setTab] = useState<"generate" | "history">("generate");
 
   // History state
@@ -140,10 +142,7 @@ export default function CardNewsPage() {
       if (json.saveError) {
         setError(`카드 생성 완료 (DB 저장 실패: ${json.saveError})`);
       }
-      // 렌더링 완료 후 캡처 → Storage 업로드 (백그라운드)
-      if (json.setId) {
-        setTimeout(() => uploadRenderedCards(json.setId, json.cards.length), 2000);
-      }
+      setUploadDone(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "생성 실패");
     } finally {
@@ -243,28 +242,44 @@ export default function CardNewsPage() {
     }
   };
 
-  // 렌더링된 카드를 캡처하여 Storage에 업로드 (백그라운드)
-  const uploadRenderedCards = async (setId: string, count: number) => {
+  // 렌더링된 카드를 캡처하여 Storage에 업로드
+  const uploadRenderedCards = async () => {
+    if (!newsSet?.setId) return;
+    setUploading(true);
     await document.fonts.ready;
-    for (let i = 0; i < count; i++) {
+
+    let successCount = 0;
+    for (let i = 0; i < newsSet.cards.length; i++) {
       try {
         const blob = await captureCard(i);
-        if (!blob) continue;
+        if (!blob) {
+          console.error(`[upload] Card ${i} capture failed — no blob`);
+          continue;
+        }
 
         const formData = new FormData();
-        formData.append("setId", setId);
+        formData.append("setId", newsSet.setId);
         formData.append("cardIndex", String(i));
         formData.append("file", blob, `card-${i}.png`);
 
-        await fetch("/api/admin/cardnews/upload", {
+        const res = await fetch("/api/admin/cardnews/upload", {
           method: "POST",
           body: formData,
         });
+
+        if (res.ok) {
+          successCount++;
+        } else {
+          const err = await res.json();
+          console.error(`[upload] Card ${i} server error:`, err);
+        }
       } catch (e) {
         console.error(`[upload] Card ${i} failed:`, e);
       }
     }
-    console.log("[upload] All cards uploaded for set:", setId);
+    setUploading(false);
+    setUploadDone(true);
+    console.log(`[upload] ${successCount}/${newsSet.cards.length} cards uploaded`);
   };
 
   // Login
@@ -325,13 +340,24 @@ export default function CardNewsPage() {
               {generating ? "생성 중..." : newsSet ? "다시 생성" : "오늘의 카드뉴스 생성"}
             </button>
             {newsSet && (
-              <button
-                onClick={downloadAll}
-                disabled={downloading !== null}
-                className="px-5 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-colors cursor-pointer disabled:opacity-30"
-              >
-                {downloading === "all" ? "ZIP 생성 중..." : "전체 다운로드 (ZIP)"}
-              </button>
+              <>
+                <button
+                  onClick={uploadRenderedCards}
+                  disabled={uploading || uploadDone}
+                  className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors cursor-pointer disabled:opacity-30 ${
+                    uploadDone ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 hover:bg-white/20 text-white"
+                  }`}
+                >
+                  {uploading ? "저장 중..." : uploadDone ? "저장 완료" : "이력 저장"}
+                </button>
+                <button
+                  onClick={downloadAll}
+                  disabled={downloading !== null}
+                  className="px-5 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-colors cursor-pointer disabled:opacity-30"
+                >
+                  {downloading === "all" ? "ZIP 생성 중..." : "전체 다운로드 (ZIP)"}
+                </button>
+              </>
             )}
           </div>
         </div>
