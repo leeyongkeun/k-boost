@@ -54,7 +54,7 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
     const map = L.map(mapRef.current, {
       zoomControl: true,
       attributionControl: false,
-    }).setView([37.5704, 126.9920], 14);
+    }).setView([37.5704, 126.9920], 12);
 
     leafletMap.current = map;
 
@@ -90,7 +90,7 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
     }
 
     if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 13 });
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 11 });
     }
 
     return () => {
