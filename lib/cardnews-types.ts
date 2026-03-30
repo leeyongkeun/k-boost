@@ -15,4 +15,7 @@ export interface CardNewsItem {
 export interface CardNewsSet {
   generatedAt: string;
   cards: CardNewsItem[];
+  setId?: string | null;
+  saved?: boolean;
+  saveError?: string | null;
 }
