@@ -72,7 +72,16 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
         />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col h-full px-[80px] py-[70px]">
+        <div
+          className="relative z-10 flex flex-col h-full px-[80px] py-[70px]"
+          style={{
+            margin: 40,
+            borderRadius: 32,
+            border: "1px solid rgba(255,255,255,0.15)",
+            background: "rgba(0,0,0,0.3)",
+            backdropFilter: "blur(2px)",
+          }}
+        >
           {card.type === "cover" && <CoverLayout card={card} accent={gradient.accentColor} />}
           {card.type === "content" && <ContentLayout card={card} accent={gradient.accentColor} />}
           {card.type === "cta" && <CtaLayout card={card} accent={gradient.accentColor} />}
