@@ -4,6 +4,7 @@ import { isValidSession } from "@/lib/admin-auth";
 import { CardNewsItem } from "@/lib/cardnews-types";
 import { getGradientKey } from "@/lib/cardnews-gradients";
 import { pickRandomTopics } from "@/lib/cardnews-topics";
+import { supabase } from "@/lib/supabase";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -195,12 +196,97 @@ SNS는 도파민 고자극 시대입니다. 일반적인 뉴스 헤드라인으�
       card.imageUrl = images[i] || undefined;
     });
 
+    // DB에 저장 (fire-and-forget)
+    const generatedAt = new Date().toISOString();
+    saveCardNewsToDb(cards, generatedAt).catch((err) =>
+      console.error("[cardnews] DB save error:", err)
+    );
+
     return NextResponse.json({
-      generatedAt: new Date().toISOString(),
+      generatedAt,
       cards,
     });
   } catch (error) {
     console.error("[cardnews] Generation error:", error);
     return NextResponse.json({ error: "카드뉴스 생성 중 오류가 발생했습니다." }, { status: 500 });
+  }
+}
+
+/** 카드뉴스를 Supabase Storage + DB에 저장 */
+async function saveCardNewsToDb(cards: CardNewsItem[], generatedAt: string) {
+  // 1. 세트 생성
+  const { data: setData, error: setError } = await supabase
+    .from("cardnews_sets")
+    .insert({ card_count: cards.length })
+    .select("id")
+    .single();
+
+  if (setError || !setData) {
+    console.error("[cardnews] Failed to create set:", setError?.message);
+    return;
+  }
+
+  const setId = setData.id;
+  const datePath = generatedAt.slice(0, 10);
+
+  // 2. 이미지를 Storage에 업로드 + 카드 데이터 DB 저장
+  const cardRows = await Promise.all(
+    cards.map(async (card) => {
+      let storedImageUrl: string | null = null;
+
+      // base64 이미지가 있으면 Storage에 업로드
+      if (card.imageUrl?.startsWith("data:")) {
+        try {
+          const match = card.imageUrl.match(/^data:(.*?);base64,(.*)$/);
+          if (match) {
+            const contentType = match[1];
+            const base64Data = match[2];
+            const ext = contentType.includes("png") ? "png" : "jpg";
+            const filePath = `${datePath}/${setId}/${card.index}.${ext}`;
+            const buffer = Buffer.from(base64Data, "base64");
+
+            const { error: uploadError } = await supabase.storage
+              .from("cardnews")
+              .upload(filePath, buffer, { contentType, upsert: true });
+
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage
+                .from("cardnews")
+                .getPublicUrl(filePath);
+              storedImageUrl = urlData.publicUrl;
+            } else {
+              console.error("[cardnews] Upload error:", uploadError.message);
+            }
+          }
+        } catch (e) {
+          console.error("[cardnews] Image upload failed:", e);
+        }
+      }
+
+      return {
+        set_id: setId,
+        card_index: card.index,
+        card_type: card.type,
+        headline: card.headline,
+        sub_headline: card.subHeadline || null,
+        body_points: card.bodyPoints,
+        stat_value: card.statValue || null,
+        stat_label: card.statLabel || null,
+        source: card.source || null,
+        image_keyword: card.imageKeyword || null,
+        image_url: storedImageUrl,
+        gradient_key: card.gradientKey,
+      };
+    })
+  );
+
+  const { error: insertError } = await supabase
+    .from("cardnews_cards")
+    .insert(cardRows);
+
+  if (insertError) {
+    console.error("[cardnews] Cards insert error:", insertError.message);
+  } else {
+    console.log("[cardnews] Saved set:", setId, "with", cardRows.length, "cards");
   }
 }

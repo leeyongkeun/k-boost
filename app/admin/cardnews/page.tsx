@@ -18,6 +18,33 @@ export default function CardNewsPage() {
   const [error, setError] = useState("");
   const [downloading, setDownloading] = useState<number | "all" | null>(null);
   const [previewCard, setPreviewCard] = useState<CardNewsItem | null>(null);
+  const [tab, setTab] = useState<"generate" | "history">("generate");
+
+  // History state
+  interface HistorySet {
+    id: string;
+    created_at: string;
+    card_count: number;
+    coverHeadline: string | null;
+    coverImage: string | null;
+  }
+  interface HistoryCard {
+    card_index: number;
+    card_type: string;
+    headline: string;
+    sub_headline: string | null;
+    body_points: string[];
+    stat_value: string | null;
+    stat_label: string | null;
+    source: string | null;
+    image_url: string | null;
+    gradient_key: string;
+  }
+  const [historySets, setHistorySets] = useState<HistorySet[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
+  const [selectedCards, setSelectedCards] = useState<HistoryCard[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const hiddenRef = useRef<HTMLDivElement>(null);
@@ -50,6 +77,47 @@ export default function CardNewsPage() {
       sessionStorage.setItem("admin_token", json.token);
     }
   };
+
+  const fetchHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await fetch("/api/admin/cardnews/history", {
+        headers: { "x-admin-token": token },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setHistorySets(json.sets || []);
+      }
+    } catch {
+      console.error("History fetch failed");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [token]);
+
+  const fetchSetDetail = useCallback(async (setId: string) => {
+    setSelectedSetId(setId);
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/admin/cardnews/history?setId=${setId}`, {
+        headers: { "x-admin-token": token },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setSelectedCards(json.cards || []);
+      }
+    } catch {
+      console.error("Detail fetch failed");
+    } finally {
+      setDetailLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (authenticated && tab === "history") {
+      fetchHistory();
+    }
+  }, [authenticated, tab, fetchHistory]);
 
   const generateCards = useCallback(async () => {
     setGenerating(true);
@@ -199,9 +267,24 @@ export default function CardNewsPage() {
             <h1 className="text-xl font-bold text-white">카드뉴스 생성기</h1>
           </div>
           <div className="flex items-center gap-3">
+            {/* Tabs */}
+            <div className="flex gap-1 mr-2">
+              <button
+                onClick={() => setTab("generate")}
+                className={`px-4 py-2 rounded-lg text-sm cursor-pointer transition-colors ${tab === "generate" ? "bg-white/15 text-white font-semibold" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
+              >
+                생성
+              </button>
+              <button
+                onClick={() => setTab("history")}
+                className={`px-4 py-2 rounded-lg text-sm cursor-pointer transition-colors ${tab === "history" ? "bg-white/15 text-white font-semibold" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
+              >
+                이력
+              </button>
+            </div>
             <button
               onClick={generateCards}
-              disabled={generating}
+              disabled={generating || tab === "history"}
               className={`px-5 py-2.5 rounded-lg font-bold text-sm transition-colors cursor-pointer ${
                 generating
                   ? "bg-white/10 text-white/30 cursor-not-allowed"
@@ -223,7 +306,7 @@ export default function CardNewsPage() {
         </div>
 
         {/* Loading */}
-        {generating && (
+        {tab === "generate" && generating && (
           <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center">
             <div className="text-[48px] mb-4 animate-bounce">🔍</div>
             <div className="text-white font-bold text-lg mb-2">관광 뉴스를 수집하고 있습니다</div>
@@ -232,14 +315,14 @@ export default function CardNewsPage() {
         )}
 
         {/* Error */}
-        {error && (
+        {tab === "generate" && error && (
           <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-red-300 text-sm mb-6">
             {error}
           </div>
         )}
 
         {/* Card Grid */}
-        {newsSet && !generating && (
+        {tab === "generate" && newsSet && !generating && (
           <>
             <div className="text-white/40 text-sm mb-4">
               {new Date(newsSet.generatedAt).toLocaleString("ko-KR")} 생성 · 카드를 클릭하면 미리보기, 다운로드 버튼으로 개별 저장
@@ -277,11 +360,88 @@ export default function CardNewsPage() {
         )}
 
         {/* Empty State */}
-        {!newsSet && !generating && !error && (
+        {tab === "generate" && !newsSet && !generating && !error && (
           <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center">
             <div className="text-[48px] mb-4">📰</div>
             <div className="text-white font-bold text-lg mb-2">카드뉴스를 생성해보세요</div>
             <div className="text-white/40 text-sm">최신 관광 뉴스를 AI가 수집하여 인스타그램용 카드뉴스 10장을 만들어드립니다</div>
+          </div>
+        )}
+
+        {/* History Tab */}
+        {tab === "history" && (
+          <div>
+            {historyLoading ? (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center text-white/40">이력 로딩 중...</div>
+            ) : selectedSetId ? (
+              /* 세트 상세 보기 */
+              <div>
+                <button
+                  onClick={() => { setSelectedSetId(null); setSelectedCards([]); }}
+                  className="text-white/40 hover:text-white text-sm mb-4 cursor-pointer"
+                >
+                  ← 목록으로
+                </button>
+                {detailLoading ? (
+                  <div className="text-white/40 text-center py-12">로딩 중...</div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {selectedCards.map((card) => (
+                      <div key={card.card_index} className="group">
+                        {card.image_url ? (
+                          <img
+                            src={card.image_url}
+                            alt={card.headline || ""}
+                            className="w-full aspect-square object-cover rounded-xl border border-white/10"
+                          />
+                        ) : (
+                          <div className="w-full aspect-square rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/20 text-sm">
+                            이미지 없음
+                          </div>
+                        )}
+                        <div className="mt-2">
+                          <div className="text-[12px] text-white font-semibold truncate">{card.headline}</div>
+                          <div className="text-[11px] text-white/40">
+                            {card.card_index + 1}/10 · {card.card_type === "cover" ? "커버" : card.card_type === "cta" ? "CTA" : "콘텐츠"}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : historySets.length === 0 ? (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center">
+                <div className="text-[48px] mb-4">📂</div>
+                <div className="text-white font-bold text-lg mb-2">아직 생성 이력이 없습니다</div>
+                <div className="text-white/40 text-sm">카드뉴스를 생성하면 자동으로 저장됩니다</div>
+              </div>
+            ) : (
+              /* 세트 목록 (사진첩) */
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {historySets.map((set) => (
+                  <div
+                    key={set.id}
+                    onClick={() => fetchSetDetail(set.id)}
+                    className="cursor-pointer group"
+                  >
+                    <div className="aspect-square rounded-xl overflow-hidden border-2 border-white/10 group-hover:border-white/30 transition-all relative">
+                      {set.coverImage ? (
+                        <img src={set.coverImage} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-white/5 flex items-center justify-center text-[48px]">📰</div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                        <div className="text-[12px] text-white font-semibold truncate">{set.coverHeadline || "카드뉴스"}</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-[11px] text-white/40">
+                      {new Date(set.created_at).toLocaleString("ko-KR")} · {set.card_count}장
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
