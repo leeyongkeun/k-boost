@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import {
-  sessions, SESSION_TTL,
   loginAttempts, MAX_ATTEMPTS,
   getClientIp, isBlocked, recordAttempt, clearAttempts,
   generateToken, isValidSession,
@@ -35,7 +34,6 @@ export async function POST(req: NextRequest) {
 
     clearAttempts(ip);
     const token = generateToken();
-    sessions.set(token, Date.now() + SESSION_TTL);
 
     return NextResponse.json({ token });
   } catch {

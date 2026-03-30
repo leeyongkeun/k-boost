@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
+import crypto from "crypto";
 
-// --- Session token (서버 메모리) ---
-export const sessions = new Map<string, number>(); // token → expireAt
+// 서명 비밀키 (환경변수 또는 관리자 비밀번호 기반)
+function getSecret(): string {
+  return process.env.ADMIN_PASSWORD || "zjstjfxld1!2@3#";
+}
+
 export const SESSION_TTL = 4 * 60 * 60 * 1000; // 4시간
 
 // --- Rate limiter (로그인 시도 제한) ---
@@ -38,23 +42,27 @@ export function clearAttempts(ip: string): void {
   loginAttempts.delete(ip);
 }
 
+/** HMAC 서명 기반 토큰 생성 — 어떤 serverless 인스턴스에서든 검증 가능 */
 export function generateToken(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let token = "";
-  for (let i = 0; i < 64; i++) {
-    token += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return token;
+  const expireAt = Date.now() + SESSION_TTL;
+  const payload = `admin:${expireAt}`;
+  const sig = crypto.createHmac("sha256", getSecret()).update(payload).digest("hex");
+  return `${expireAt}.${sig}`;
 }
 
+/** HMAC 서명 검증 — 인메모리 Map 불필요 */
 export function isValidSession(req: NextRequest): boolean {
   const token = req.headers.get("x-admin-token");
   if (!token) return false;
-  const expireAt = sessions.get(token);
-  if (!expireAt) return false;
-  if (Date.now() > expireAt) {
-    sessions.delete(token);
-    return false;
-  }
-  return true;
+
+  const dotIndex = token.indexOf(".");
+  if (dotIndex === -1) return false;
+
+  const expireAt = Number(token.slice(0, dotIndex));
+  const sig = token.slice(dotIndex + 1);
+
+  if (isNaN(expireAt) || Date.now() > expireAt) return false;
+
+  const expectedSig = crypto.createHmac("sha256", getSecret()).update(`admin:${expireAt}`).digest("hex");
+  return sig === expectedSig;
 }
