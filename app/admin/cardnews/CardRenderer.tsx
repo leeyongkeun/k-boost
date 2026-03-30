@@ -51,8 +51,8 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
             margin: 40,
             borderRadius: 32,
             border: "1px solid rgba(255,255,255,0.2)",
-            background: "rgba(0,0,0,0.55)",
-            backdropFilter: "blur(4px)",
+            background: "rgba(0,0,0,0.3)",
+            backdropFilter: "blur(2px)",
           }}
         >
           {card.type === "cover" && <CoverLayout card={card} accent={gradient.accentColor} />}
