@@ -33,7 +33,6 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
           <img
             src={card.imageUrl}
             alt=""
-            crossOrigin="anonymous"
             style={{
               position: "absolute",
               top: 0,
@@ -103,10 +102,10 @@ function CoverLayout({ card, accent }: { card: CardNewsItem; accent: string }) {
     <div className="flex-1 flex flex-col justify-center items-center text-center">
       <div
         style={{
-          fontSize: 30,
+          fontSize: 34,
           fontWeight: 500,
           opacity: 0.5,
-          marginBottom: 24,
+          marginBottom: 28,
           letterSpacing: 4,
           textTransform: "uppercase",
         }}
@@ -115,30 +114,30 @@ function CoverLayout({ card, accent }: { card: CardNewsItem; accent: string }) {
       </div>
       <div
         style={{
-          fontSize: 58,
+          fontSize: 68,
           fontWeight: 900,
           lineHeight: 1.3,
-          marginBottom: 32,
-          maxWidth: 800,
+          marginBottom: 36,
+          maxWidth: 850,
         }}
       >
         {card.headline}
       </div>
       {card.subHeadline && (
-        <div style={{ fontSize: 30, opacity: 0.7, marginBottom: 40 }}>
+        <div style={{ fontSize: 34, opacity: 0.7, marginBottom: 44 }}>
           {card.subHeadline}
         </div>
       )}
       <div className="flex gap-[16px] flex-wrap justify-center">
-        {card.bodyPoints.map((point, i) => (
+        {card.bodyPoints.slice(0, 3).map((point, i) => (
           <div
             key={i}
             style={{
               background: accent,
               color: "#fff",
-              padding: "12px 28px",
+              padding: "14px 32px",
               borderRadius: 50,
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: 700,
             }}
           >
@@ -155,10 +154,10 @@ function ContentLayout({ card, accent }: { card: CardNewsItem; accent: string })
     <div className="flex-1 flex flex-col">
       {/* Stat */}
       {card.statValue && (
-        <div style={{ marginBottom: 40 }}>
+        <div style={{ marginBottom: 44 }}>
           <div
             style={{
-              fontSize: 80,
+              fontSize: 96,
               fontWeight: 900,
               color: accent,
               lineHeight: 1.1,
@@ -167,7 +166,7 @@ function ContentLayout({ card, accent }: { card: CardNewsItem; accent: string })
             {card.statValue}
           </div>
           {card.statLabel && (
-            <div style={{ fontSize: 26, opacity: 0.5, marginTop: 8 }}>
+            <div style={{ fontSize: 30, opacity: 0.5, marginTop: 10 }}>
               {card.statLabel}
             </div>
           )}
@@ -177,36 +176,36 @@ function ContentLayout({ card, accent }: { card: CardNewsItem; accent: string })
       {/* Headline */}
       <div
         style={{
-          fontSize: 48,
+          fontSize: 56,
           fontWeight: 900,
-          lineHeight: 1.35,
-          marginBottom: 16,
+          lineHeight: 1.3,
+          marginBottom: 20,
         }}
       >
         {card.headline}
       </div>
 
       {card.subHeadline && (
-        <div style={{ fontSize: 28, opacity: 0.6, marginBottom: 32 }}>
+        <div style={{ fontSize: 32, opacity: 0.6, marginBottom: 36 }}>
           {card.subHeadline}
         </div>
       )}
 
-      {/* Body Points */}
-      <div className="flex-1 flex flex-col justify-center" style={{ gap: 20 }}>
-        {card.bodyPoints.map((point, i) => (
-          <div key={i} className="flex items-start" style={{ gap: 16 }}>
+      {/* Body Points — 최대 2줄 */}
+      <div className="flex-1 flex flex-col justify-center" style={{ gap: 24 }}>
+        {card.bodyPoints.slice(0, 2).map((point, i) => (
+          <div key={i} className="flex items-start" style={{ gap: 18 }}>
             <div
               style={{
-                width: 10,
-                height: 10,
+                width: 12,
+                height: 12,
                 borderRadius: "50%",
                 background: accent,
-                marginTop: 14,
+                marginTop: 16,
                 flexShrink: 0,
               }}
             />
-            <div style={{ fontSize: 30, lineHeight: 1.6, opacity: 0.9 }}>
+            <div style={{ fontSize: 36, lineHeight: 1.5, opacity: 0.9 }}>
               {point}
             </div>
           </div>
@@ -219,24 +218,24 @@ function ContentLayout({ card, accent }: { card: CardNewsItem; accent: string })
 function CtaLayout({ card, accent }: { card: CardNewsItem; accent: string }) {
   return (
     <div className="flex-1 flex flex-col justify-center items-center text-center">
-      <div style={{ fontSize: 64, marginBottom: 32 }}>🚀</div>
+      <div style={{ fontSize: 72, marginBottom: 36 }}>🚀</div>
       <div
         style={{
-          fontSize: 48,
+          fontSize: 54,
           fontWeight: 900,
           lineHeight: 1.35,
-          marginBottom: 40,
-          maxWidth: 800,
+          marginBottom: 44,
+          maxWidth: 850,
         }}
       >
         {card.headline}
       </div>
 
-      <div className="flex flex-col" style={{ gap: 16, marginBottom: 48 }}>
-        {card.bodyPoints.map((point, i) => (
+      <div className="flex flex-col" style={{ gap: 18, marginBottom: 52 }}>
+        {card.bodyPoints.slice(0, 2).map((point, i) => (
           <div
             key={i}
-            style={{ fontSize: 28, opacity: 0.8, lineHeight: 1.6 }}
+            style={{ fontSize: 34, opacity: 0.8, lineHeight: 1.6 }}
           >
             {point}
           </div>
@@ -247,15 +246,15 @@ function CtaLayout({ card, accent }: { card: CardNewsItem; accent: string }) {
         style={{
           background: accent,
           color: "#fff",
-          padding: "20px 56px",
+          padding: "24px 64px",
           borderRadius: 60,
-          fontSize: 30,
+          fontSize: 36,
           fontWeight: 800,
         }}
       >
         무료 매장 진단 받기 →
       </div>
-      <div style={{ fontSize: 24, opacity: 0.4, marginTop: 20 }}>
+      <div style={{ fontSize: 28, opacity: 0.4, marginTop: 24 }}>
         kboost.imweb.me
       </div>
     </div>
