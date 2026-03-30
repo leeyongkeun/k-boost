@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
+
+const MapSection = lazy(() => import("./MapSection"));
 
 interface DailyRow {
   date: string;
@@ -24,8 +26,19 @@ interface Summary {
   pdfRate: number;
 }
 
+interface Pin {
+  id: string;
+  storeName: string | null;
+  grade: string | null;
+  score: number | null;
+  address: string | null;
+  lat: number;
+  lng: number;
+}
+
 interface StatsData {
   daily: DailyRow[];
+  pins: Pin[];
   summary: Summary;
 }
 
@@ -66,7 +79,7 @@ function CustomTooltip({ active, payload, label }: any) {
 export default function DashboardSection({ token }: { token: string }) {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState(14);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -99,7 +112,7 @@ export default function DashboardSection({ token }: { token: string }) {
 
   if (!stats) return null;
 
-  const { summary, daily } = stats;
+  const { summary, daily, pins } = stats;
 
   const kpiCards = [
     { label: "총 등록 수", value: summary.totalAllTime.toLocaleString(), sub: "전체", color: "text-white" },
@@ -181,6 +194,15 @@ export default function DashboardSection({ token }: { token: string }) {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Map */}
+      <Suspense fallback={
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-center text-white/40">
+          지도 로딩 중...
+        </div>
+      }>
+        <MapSection pins={pins} />
+      </Suspense>
     </div>
   );
 }

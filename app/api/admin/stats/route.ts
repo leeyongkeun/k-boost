@@ -53,6 +53,23 @@ export async function GET(req: NextRequest) {
     .select("id", { count: "exact", head: true })
     .eq("pdf_sent", true);
 
+  // 지도 핀용 좌표 데이터 (좌표가 있는 것만)
+  const { data: mapData } = await supabase
+    .from("search_results")
+    .select("id, store_name, grade, score, address, kakao_x, kakao_y, naver_mapx, naver_mapy, created_at")
+    .or("kakao_x.not.is.null,naver_mapx.not.is.null")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  const pins = (mapData || []).map((row) => {
+    // 카카오 좌표 우선, 없으면 네이버 좌표 (네이버는 1/1e7 스케일)
+    let lng = row.kakao_x ? Number(row.kakao_x) : null;
+    let lat = row.kakao_y ? Number(row.kakao_y) : null;
+    if (!lng && row.naver_mapx) lng = Number(row.naver_mapx) / 1e7;
+    if (!lat && row.naver_mapy) lat = Number(row.naver_mapy) / 1e7;
+    return { id: row.id, storeName: row.store_name, grade: row.grade, score: row.score, address: row.address, lat, lng };
+  }).filter((p) => p.lat && p.lng);
+
   // 일별 그룹핑 (KST 기준)
   const dailyMap = new Map<string, DailyRow>();
   const grades = ["S", "A", "B", "C", "D"] as const;
@@ -94,6 +111,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     daily,
+    pins,
     summary: {
       totalAllTime: totalAllTime ?? 0,
       today: todayCount,
