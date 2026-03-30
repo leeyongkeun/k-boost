@@ -139,70 +139,73 @@ export default function DashboardSection({ token }: { token: string }) {
         ))}
       </div>
 
-      {/* Chart Container */}
-      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[14px] font-bold text-white/80">일별 등록 통계</h3>
-          <div className="flex gap-1">
-            {[7, 14, 30].map((d) => (
-              <button
-                key={d}
-                onClick={() => setDays(d)}
-                className={`px-3 py-1 rounded-lg text-[12px] cursor-pointer transition-colors ${
-                  days === d
-                    ? "bg-white/15 text-white font-semibold"
-                    : "bg-white/5 text-white/40 hover:bg-white/10"
-                }`}
-              >
-                {d}일
-              </button>
-            ))}
+      {/* Chart + Map Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Chart */}
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[14px] font-bold text-white/80">일별 등록 통계</h3>
+            <div className="flex gap-1">
+              {[7, 14, 30].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDays(d)}
+                  className={`px-3 py-1 rounded-lg text-[12px] cursor-pointer transition-colors ${
+                    days === d
+                      ? "bg-white/15 text-white font-semibold"
+                      : "bg-white/5 text-white/40 hover:bg-white/10"
+                  }`}
+                >
+                  {d}일
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={daily} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatDateLabel}
-              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
-              axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
-              tickLine={false}
-              interval={days <= 7 ? 0 : days <= 14 ? 1 : "preserveStartEnd"}
-            />
-            <YAxis
-              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-              allowDecimals={false}
-            />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-            <Legend
-              wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }}
-              formatter={(value: string) => <span style={{ color: "rgba(255,255,255,0.5)" }}>{value}</span>}
-            />
-            {Object.entries(GRADE_COLORS).map(([grade, color]) => (
-              <Bar
-                key={grade}
-                dataKey={grade}
-                stackId="grade"
-                fill={color}
-                radius={grade === "S" ? [3, 3, 0, 0] : undefined}
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={daily} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickFormatter={formatDateLabel}
+                tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+                axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+                tickLine={false}
+                interval={days <= 7 ? 0 : days <= 14 ? 1 : "preserveStartEnd"}
               />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Map */}
-      <Suspense fallback={
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-center text-white/40">
-          지도 로딩 중...
+              <YAxis
+                tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+              <Legend
+                wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }}
+                formatter={(value: string) => <span style={{ color: "rgba(255,255,255,0.5)" }}>{value}</span>}
+              />
+              {Object.entries(GRADE_COLORS).map(([grade, color]) => (
+                <Bar
+                  key={grade}
+                  dataKey={grade}
+                  stackId="grade"
+                  fill={color}
+                  radius={grade === "S" ? [3, 3, 0, 0] : undefined}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-      }>
-        <MapSection pins={pins} />
-      </Suspense>
+
+        {/* Map */}
+        <Suspense fallback={
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-center text-white/40">
+            지도 로딩 중...
+          </div>
+        }>
+          <MapSection pins={pins} />
+        </Suspense>
+      </div>
     </div>
   );
 }

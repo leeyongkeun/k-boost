@@ -53,8 +53,8 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
 
     leafletMap.current = map;
 
-    // 다크 타일
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    // 밝은 타일
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
     }).addTo(map);
 
@@ -111,7 +111,7 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
       <div
         ref={mapRef}
         className="w-full rounded-xl overflow-hidden"
-        style={{ height: 360 }}
+        style={{ height: 300 }}
       />
     </div>
   );
