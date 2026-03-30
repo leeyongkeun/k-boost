@@ -46,6 +46,11 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
       leafletMap.current = null;
     }
 
+    // Tailwind preflight가 img { max-width:100%; height:auto } 설정해서 타일이 깨짐 → 오버라이드
+    const style = document.createElement("style");
+    style.textContent = `.leaflet-container img { max-width: none !important; height: auto !important; }`;
+    document.head.appendChild(style);
+
     const map = L.map(mapRef.current, {
       zoomControl: true,
       attributionControl: false,
@@ -53,8 +58,8 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
 
     leafletMap.current = map;
 
-    // 밝은 타일
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png", {
+    // 밝은 타일 (OpenStreetMap)
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
     }).addTo(map);
 
@@ -91,6 +96,7 @@ export default function MapSection({ pins }: { pins: Pin[] }) {
     return () => {
       map.remove();
       leafletMap.current = null;
+      style.remove();
     };
   }, [pins]);
 
