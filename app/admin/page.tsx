@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DashboardSection from "./DashboardSection";
 
 interface SearchResult {
   id: string;
@@ -283,6 +284,9 @@ export default function AdminPage() {
             </button>
           </div>
         </div>
+
+        {/* Dashboard */}
+        <DashboardSection token={token} />
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-6">

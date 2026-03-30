@@ -1,64 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-
-// --- Session token (서버 메모리) ---
-const sessions = new Map<string, number>(); // token → expireAt
-const SESSION_TTL = 4 * 60 * 60 * 1000; // 4시간
-
-// --- Rate limiter (로그인 시도 제한) ---
-const loginAttempts = new Map<string, { count: number; blockedUntil: number }>();
-const MAX_ATTEMPTS = 5;
-const BLOCK_DURATION = 5 * 60 * 1000; // 5분 차단
-
-function getClientIp(req: NextRequest): string {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    || req.headers.get("x-real-ip")
-    || "unknown";
-}
-
-function isBlocked(ip: string): boolean {
-  const entry = loginAttempts.get(ip);
-  if (!entry) return false;
-  if (Date.now() > entry.blockedUntil) {
-    loginAttempts.delete(ip);
-    return false;
-  }
-  return entry.count >= MAX_ATTEMPTS;
-}
-
-function recordAttempt(ip: string): void {
-  const entry = loginAttempts.get(ip) || { count: 0, blockedUntil: 0 };
-  entry.count++;
-  if (entry.count >= MAX_ATTEMPTS) {
-    entry.blockedUntil = Date.now() + BLOCK_DURATION;
-  }
-  loginAttempts.set(ip, entry);
-}
-
-function clearAttempts(ip: string): void {
-  loginAttempts.delete(ip);
-}
-
-function generateToken(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let token = "";
-  for (let i = 0; i < 64; i++) {
-    token += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return token;
-}
-
-function isValidSession(req: NextRequest): boolean {
-  const token = req.headers.get("x-admin-token");
-  if (!token) return false;
-  const expireAt = sessions.get(token);
-  if (!expireAt) return false;
-  if (Date.now() > expireAt) {
-    sessions.delete(token);
-    return false;
-  }
-  return true;
-}
+import {
+  sessions, SESSION_TTL,
+  loginAttempts, MAX_ATTEMPTS,
+  getClientIp, isBlocked, recordAttempt, clearAttempts,
+  generateToken, isValidSession,
+} from "@/lib/admin-auth";
 
 // POST: 로그인 → 세션 토큰 발급
 export async function POST(req: NextRequest) {
