@@ -140,6 +140,10 @@ export default function CardNewsPage() {
       if (json.saveError) {
         setError(`카드 생성 완료 (DB 저장 실패: ${json.saveError})`);
       }
+      // 렌더링 완료 후 캡처 → Storage 업로드 (백그라운드)
+      if (json.setId) {
+        setTimeout(() => uploadRenderedCards(json.setId, json.cards.length), 2000);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "생성 실패");
     } finally {
@@ -237,6 +241,30 @@ export default function CardNewsPage() {
     } finally {
       setDownloading(null);
     }
+  };
+
+  // 렌더링된 카드를 캡처하여 Storage에 업로드 (백그라운드)
+  const uploadRenderedCards = async (setId: string, count: number) => {
+    await document.fonts.ready;
+    for (let i = 0; i < count; i++) {
+      try {
+        const blob = await captureCard(i);
+        if (!blob) continue;
+
+        const formData = new FormData();
+        formData.append("setId", setId);
+        formData.append("cardIndex", String(i));
+        formData.append("file", blob, `card-${i}.png`);
+
+        await fetch("/api/admin/cardnews/upload", {
+          method: "POST",
+          body: formData,
+        });
+      } catch (e) {
+        console.error(`[upload] Card ${i} failed:`, e);
+      }
+    }
+    console.log("[upload] All cards uploaded for set:", setId);
   };
 
   // Login
