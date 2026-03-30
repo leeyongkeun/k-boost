@@ -20,7 +20,7 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
         style={{
           width: 1080,
           height: 1080,
-          background: gradient.background,
+          background: "#000",
           color: gradient.textColor,
           transform: `scale(${s})`,
           transformOrigin: "top left",
@@ -28,7 +28,7 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
         }}
         className="relative overflow-hidden flex flex-col"
       >
-        {/* Background image */}
+        {/* Background image — 원본 그대로, 음영/오버레이 없음 */}
         {card.imageUrl && (
           <img
             src={card.imageUrl}
@@ -40,36 +40,9 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
               width: 1080,
               height: 1080,
               objectFit: "cover",
-              opacity: 0.55,
             }}
           />
         )}
-        {/* Dark overlay for text readability */}
-        <div
-          className="absolute inset-0"
-          style={{ background: "rgba(0,0,0,0.35)" }}
-        />
-        {/* Decorative circles */}
-        <div
-          className="absolute rounded-full opacity-[0.08]"
-          style={{
-            width: 500,
-            height: 500,
-            background: gradient.accentColor,
-            top: -120,
-            right: -120,
-          }}
-        />
-        <div
-          className="absolute rounded-full opacity-[0.05]"
-          style={{
-            width: 350,
-            height: 350,
-            background: gradient.accentColor,
-            bottom: -80,
-            left: -80,
-          }}
-        />
 
         {/* Content */}
         <div
@@ -77,9 +50,9 @@ const CardRenderer = forwardRef<HTMLDivElement, CardRendererProps>(
           style={{
             margin: 40,
             borderRadius: 32,
-            border: "1px solid rgba(255,255,255,0.15)",
-            background: "rgba(0,0,0,0.3)",
-            backdropFilter: "blur(2px)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            background: "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(4px)",
           }}
         >
           {card.type === "cover" && <CoverLayout card={card} accent={gradient.accentColor} />}
