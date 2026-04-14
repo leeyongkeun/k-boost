@@ -66,7 +66,7 @@ export default function Landing({ onStart }: LandingProps) {
       </div>
 
       {/* Divider */}
-      <div className="w-10 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent my-[22px] relative z-[2] animate-[fadeIn_1s_ease-out_0.2s_both]" />
+      <div className="w-10 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent my-[28px] relative z-[2] animate-[fadeIn_1s_ease-out_0.2s_both]" />
 
       {/* Headline */}
       <div className="text-center relative z-[2] animate-[fadeIn_0.8s_ease-out_0.15s_both]">
@@ -76,20 +76,20 @@ export default function Landing({ onStart }: LandingProps) {
         </h1>
       </div>
 
-      {/* Rocket Section */}
-      <div className="relative z-[2] flex items-center justify-center flex-1 w-full animate-[fadeIn_1s_ease-out_0.3s_both]">
+      {/* Rocket Section — smaller for small mobile */}
+      <div className="relative z-[2] flex items-center justify-center flex-1 w-full my-4 animate-[fadeIn_1s_ease-out_0.3s_both]">
         <div className="relative flex items-center justify-center w-full h-full">
           {/* Glow ring */}
-          <div className="absolute top-1/2 left-1/2 w-[min(36dvh,230px)] h-[min(36dvh,230px)] rounded-full bg-[radial-gradient(circle,rgba(197,3,55,0.1)_0%,rgba(197,3,55,0.02)_45%,transparent_70%)] animate-pulse-glow" />
+          <div className="absolute top-1/2 left-1/2 w-[min(28dvh,180px)] h-[min(28dvh,180px)] rounded-full bg-[radial-gradient(circle,rgba(197,3,55,0.1)_0%,rgba(197,3,55,0.02)_45%,transparent_70%)] animate-pulse-glow" />
           {/* Orbit */}
-          <div className="absolute top-1/2 left-1/2 w-[min(40dvh,250px)] h-[min(40dvh,250px)] border border-white/5 rounded-full animate-orbit-spin before:content-[''] before:absolute before:-top-1 before:left-1/2 before:w-[7px] before:h-[7px] before:bg-[#C50337] before:rounded-full before:shadow-[0_0_14px_#C50337]" />
+          <div className="absolute top-1/2 left-1/2 w-[min(32dvh,200px)] h-[min(32dvh,200px)] border border-white/5 rounded-full animate-orbit-spin before:content-[''] before:absolute before:-top-1 before:left-1/2 before:w-[7px] before:h-[7px] before:bg-[#C50337] before:rounded-full before:shadow-[0_0_14px_#C50337]" />
           {/* Rocket */}
-          <div className="text-[min(26dvh,170px)] leading-none animate-rocket-float relative z-[2] drop-shadow-[0_0_50px_rgba(197,3,55,0.35)] drop-shadow-[0_25px_60px_rgba(2,28,79,0.7)]">
+          <div className="text-[min(20dvh,130px)] leading-none animate-rocket-float relative z-[2] drop-shadow-[0_0_50px_rgba(197,3,55,0.35)] drop-shadow-[0_25px_60px_rgba(2,28,79,0.7)]">
             🚀
           </div>
           {/* Trail */}
           <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 flex gap-1.5">
-            {[32, 44, 38, 28, 40].map((h, i) => (
+            {[24, 34, 28, 20, 30].map((h, i) => (
               <span
                 key={i}
                 className="w-[3px] rounded-[3px] bg-gradient-to-b from-[rgba(197,3,55,0.35)] to-transparent animate-exhaust"
@@ -104,7 +104,7 @@ export default function Landing({ onStart }: LandingProps) {
       </div>
 
       {/* Test description */}
-      <div className="text-center relative z-[2] mb-6 animate-[fadeUp_0.8s_ease-out_0.45s_both]">
+      <div className="text-center relative z-[2] mb-8 animate-[fadeUp_0.8s_ease-out_0.45s_both]">
         <p className="text-[18px] font-medium text-white/70 leading-[1.6] tracking-[-0.2px] break-keep">
           내 매장의 <span className="text-white font-extrabold relative inline bg-[linear-gradient(transparent_60%,rgba(197,3,55,0.35)_60%)]">글로벌 잠재력</span>을<br />
           지금 바로 테스트 해보세요!

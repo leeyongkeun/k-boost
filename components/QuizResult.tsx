@@ -48,11 +48,11 @@ function useProgressPct() {
     let timeout: ReturnType<typeof setTimeout>;
     const tick = () => {
       if (pctRef.current < 95) {
-        const inc = pctRef.current < 40 ? Math.random() * 1.5 + 0.3 : Math.random() * 0.6 + 0.1;
+        const inc = pctRef.current < 40 ? Math.random() * 2.5 + 0.8 : Math.random() * 1.2 + 0.3;
         pctRef.current = Math.min(95, pctRef.current + inc);
         setPct(Math.round(pctRef.current));
       }
-      timeout = setTimeout(tick, 800 + Math.random() * 1200);
+      timeout = setTimeout(tick, 400 + Math.random() * 600);
     };
     tick();
     return () => clearTimeout(timeout);
@@ -167,58 +167,60 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
         }}
       >
 
-      {/* ━━━ Platform Registration ━━━ */}
-      {result.platforms && result.platforms.length > 0 && (
-        <div className="p-[18px] bg-white/[0.04] border border-white/[0.08] rounded-[14px] mb-7">
-          <div className="flex items-center justify-between mb-3.5">
-            <span className="text-[14px] font-bold text-white tracking-[-0.2px]">지도 등록 현황</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2.5">
-            {result.platforms.map((p) => {
-              const iconCfg = PLATFORM_ICON_CONFIG[p.name];
-              return (
-                <div
-                  key={p.name}
-                  className={`flex items-center gap-2.5 p-2.5 px-3 rounded-[10px] border ${
-                    p.registered
-                      ? "bg-white/[0.03] border-white/[0.08]"
-                      : "bg-[rgba(197,3,55,0.03)] border-[rgba(197,3,55,0.15)]"
-                  }`}
-                >
-                  <div className={`w-7 h-7 rounded-[6px] flex items-center justify-center text-[14px] font-extrabold shrink-0 ${iconCfg?.bg || "bg-white/[0.08]"} ${iconCfg?.text || "text-white/40"}`}>
-                    {iconCfg?.label || p.name[0]}
+      {/* ━━━ 외국인 수입 플랫폼 (Platform Registration) ━━━ */}
+      {result.platforms && result.platforms.length > 0 && (() => {
+        const registeredCount = result.platforms.filter(p => p.registered).length + (result.instagram_url ? 1 : 0);
+        const totalCount = result.platforms.length + (result.instagram_url ? 1 : 0);
+        return (
+          <div className="p-[18px] bg-white/[0.04] border border-white/[0.08] rounded-[14px] mb-7">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[14px] font-bold text-white tracking-[-0.2px]">외국인 수입 플랫폼</span>
+              <span className="text-[12px] font-bold text-[#e8254d]">{registeredCount}/{totalCount} 등록됨</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {result.platforms.map((p) => {
+                const iconCfg = PLATFORM_ICON_CONFIG[p.name];
+                return (
+                  <div
+                    key={p.name}
+                    className={`flex flex-col items-center gap-1.5 p-2.5 rounded-[10px] border ${
+                      p.registered
+                        ? "bg-white/[0.03] border-white/[0.08]"
+                        : "bg-[rgba(197,3,55,0.03)] border-[rgba(197,3,55,0.15)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 w-full">
+                      <div className={`w-7 h-7 rounded-[6px] flex items-center justify-center text-[14px] font-extrabold shrink-0 ${iconCfg?.bg || "bg-white/[0.08]"} ${iconCfg?.text || "text-white/40"}`}>
+                        {iconCfg?.label || p.name[0]}
+                      </div>
+                      <span className={`text-[11px] font-bold py-0.5 px-2 rounded-[6px] shrink-0 ml-auto ${
+                        p.registered
+                          ? "text-[#4ade80] bg-[rgba(74,222,128,0.08)]"
+                          : "text-[#e8254d] bg-[rgba(197,3,55,0.08)]"
+                      }`}>
+                        {p.registered ? "등록" : "미등록"}
+                      </span>
+                    </div>
+                    <div className="text-[12px] font-semibold text-white/75 tracking-[-0.2px] w-full">{p.name}</div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-white/75 tracking-[-0.2px]">{p.name}</div>
-                    {p.score !== undefined && p.score > 0 && (
-                      <div className="text-[11px] font-normal text-white/[0.38] mt-px">⭐ {p.score.toFixed(1)}</div>
-                    )}
+                );
+              })}
+              {/* Instagram */}
+              {result.instagram_url && (
+                <div className="flex flex-col items-center gap-1.5 p-2.5 rounded-[10px] border bg-white/[0.03] border-white/[0.08]">
+                  <div className="flex items-center gap-2 w-full">
+                    <div className="w-7 h-7 rounded-[6px] flex items-center justify-center text-[14px] shrink-0 bg-gradient-to-br from-[#f09433] via-[#dc2743] to-[#bc1888]">
+                      📷
+                    </div>
+                    <span className="text-[11px] font-bold text-[#60a5fa] bg-[rgba(96,165,250,0.08)] py-0.5 px-2 rounded-[6px] shrink-0 ml-auto">연결됨</span>
                   </div>
-                  <span className={`text-[11px] font-bold py-0.5 px-2 rounded-[6px] shrink-0 ${
-                    p.registered
-                      ? "text-[#4ade80] bg-[rgba(74,222,128,0.08)]"
-                      : "text-[#e8254d] bg-[rgba(197,3,55,0.08)]"
-                  }`}>
-                    {p.registered ? "등록" : "미등록"}
-                  </span>
+                  <div className="text-[12px] font-semibold text-white/75 w-full">Instagram</div>
                 </div>
-              );
-            })}
-            {/* Instagram */}
-            {result.instagram_url && (
-              <div className="flex items-center gap-2.5 p-2.5 px-3 rounded-[10px] border bg-white/[0.03] border-white/[0.08]">
-                <div className="w-7 h-7 rounded-[6px] flex items-center justify-center text-[14px] shrink-0 bg-gradient-to-br from-[#f09433] via-[#dc2743] to-[#bc1888]">
-                  📷
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-white/75">Instagram</div>
-                </div>
-                <span className="text-[11px] font-bold text-[#60a5fa] bg-[rgba(96,165,250,0.08)] py-0.5 px-2 rounded-[6px] shrink-0">연결됨</span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ━━━ Key Metrics — diagnostic cards ━━━ */}
       {result.key_metrics && result.key_metrics.length > 0 && (
@@ -256,11 +258,11 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
 
       {/* ━━━ Improvements ━━━ */}
       {result.improvements && result.improvements.length > 0 && (
-        <div className="p-[18px] bg-[rgba(197,3,55,0.04)] border border-[rgba(197,3,55,0.2)] rounded-[14px] mb-7">
-          <div className="text-[15px] font-bold text-white mb-4 tracking-[-0.2px]">📋 개선 방향</div>
-          <div className="flex flex-col gap-3.5">
+        <div className="mb-7">
+          <div className="text-[15px] font-bold text-white mb-3 tracking-[-0.2px]">📋 개선 방향</div>
+          <div className="flex flex-col gap-2.5">
             {result.improvements.map((s, i) => (
-              <div key={i} className="flex gap-2.5">
+              <div key={i} className="flex gap-2.5 p-3.5 bg-[rgba(197,3,55,0.04)] border border-[rgba(197,3,55,0.15)] rounded-[12px]">
                 <span className="text-[20px] shrink-0 leading-[1.4]">{IMPROVEMENT_ICONS[i] || "📌"}</span>
                 <span className="text-[13px] font-normal text-white/60 leading-[1.6] tracking-[-0.2px]"
                   dangerouslySetInnerHTML={{
