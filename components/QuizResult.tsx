@@ -223,38 +223,80 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
       })()}
 
       {/* ━━━ Key Metrics — diagnostic cards ━━━ */}
-      {result.key_metrics && result.key_metrics.length > 0 && (
-        <div className="space-y-3 mb-7">
-          {result.key_metrics.map((metric, i) => {
-            const badgeColor = {
-              good: "text-[#4ade80] bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.2)]",
-              warning: "text-[#fbbf24] bg-[rgba(251,191,36,0.1)] border-[rgba(251,191,36,0.2)]",
-              critical: "text-[#e8254d] bg-[rgba(197,3,55,0.1)] border-[rgba(197,3,55,0.2)]",
-            }[metric.status];
-            const isDanger = metric.status === "critical";
-            return (
-              <div
-                key={i}
-                className={`p-3.5 px-[18px] rounded-[14px] border ${
-                  isDanger
-                    ? "bg-[rgba(197,3,55,0.04)] border-[rgba(197,3,55,0.2)]"
-                    : "bg-white/[0.04] border-white/[0.08]"
-                }`}
-              >
+      {result.key_metrics && result.key_metrics.length > 0 && (() => {
+        // 지도 플랫폼 관련 항목 숨김 (이미 위 플랫폼 섹션에 표시)
+        const HIDE_KEYWORDS = ["네이버", "카카오", "구글", "google", "naver", "kakao", "지도"];
+        // 외국어지원/온라인 존재감 → '외국인 유입 플랫폼'으로 합침
+        const MERGE_KEYWORDS = ["외국어", "외국인", "온라인 존재"];
+
+        const filtered = result.key_metrics.filter((m) => {
+          const lower = m.label.toLowerCase();
+          if (HIDE_KEYWORDS.some(k => lower.includes(k.toLowerCase()))) return false;
+          return true;
+        });
+
+        // 합칠 항목과 나머지 분리
+        const mergeTargets = filtered.filter((m) =>
+          MERGE_KEYWORDS.some(k => m.label.includes(k))
+        );
+        const rest = filtered.filter((m) =>
+          !MERGE_KEYWORDS.some(k => m.label.includes(k))
+        );
+
+        // 합친 항목의 detail을 결합
+        const mergedDetail = mergeTargets.map(m => m.detail).filter(Boolean).join(" ");
+
+        return (
+          <div className="space-y-3 mb-7">
+            {/* 외국인 유입 플랫폼 (합친 항목) */}
+            {mergeTargets.length > 0 && (
+              <div className="p-3.5 px-[18px] rounded-[14px] border bg-[rgba(197,3,55,0.04)] border-[rgba(197,3,55,0.2)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[14px] font-bold text-white tracking-[-0.2px]">{metric.label}</span>
-                  <span className={`text-[11px] font-bold py-0.5 px-2.5 rounded-[10px] border ${badgeColor}`}>
-                    {metric.value}
+                  <span className="text-[14px] font-bold text-white tracking-[-0.2px]">외국인 유입 플랫폼</span>
+                  <span className="text-[11px] font-bold py-0.5 px-2.5 rounded-[10px] border text-[#e8254d] bg-[rgba(197,3,55,0.1)] border-[rgba(197,3,55,0.2)]">
+                    3/20 등록됨
                   </span>
                 </div>
-                <div className="text-[12px] font-normal text-white/45 leading-[1.55] text-center">
-                  {metric.detail}
-                </div>
+                {mergedDetail && (
+                  <div className="text-[12px] font-normal text-white/45 leading-[1.55] text-center">
+                    {mergedDetail}
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+
+            {/* 나머지 항목 */}
+            {rest.map((metric, i) => {
+              const badgeColor = {
+                good: "text-[#4ade80] bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.2)]",
+                warning: "text-[#fbbf24] bg-[rgba(251,191,36,0.1)] border-[rgba(251,191,36,0.2)]",
+                critical: "text-[#e8254d] bg-[rgba(197,3,55,0.1)] border-[rgba(197,3,55,0.2)]",
+              }[metric.status];
+              const isDanger = metric.status === "critical";
+              return (
+                <div
+                  key={i}
+                  className={`p-3.5 px-[18px] rounded-[14px] border ${
+                    isDanger
+                      ? "bg-[rgba(197,3,55,0.04)] border-[rgba(197,3,55,0.2)]"
+                      : "bg-white/[0.04] border-white/[0.08]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[14px] font-bold text-white tracking-[-0.2px]">{metric.label}</span>
+                    <span className={`text-[11px] font-bold py-0.5 px-2.5 rounded-[10px] border ${badgeColor}`}>
+                      {metric.value}
+                    </span>
+                  </div>
+                  <div className="text-[12px] font-normal text-white/45 leading-[1.55] text-center">
+                    {metric.detail}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* ━━━ Improvements ━━━ */}
       {result.improvements && result.improvements.length > 0 && (
