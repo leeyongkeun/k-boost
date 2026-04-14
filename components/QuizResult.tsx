@@ -247,7 +247,7 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
           <div className="space-y-3 mb-7">
             {/* 외국인 유입 플랫폼 (합친 항목) */}
             {mergeTargets.length > 0 && (
-              <div className="p-3.5 px-[18px] rounded-[14px] border bg-[rgba(197,3,55,0.04)] border-[rgba(197,3,55,0.2)]">
+              <div className="p-3.5 px-[18px] rounded-[14px] border bg-white/[0.04] border-white/[0.08]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[14px] font-bold text-white tracking-[-0.2px]">외국인 유입 플랫폼</span>
                   <span className="text-[11px] font-bold py-0.5 px-2.5 rounded-[10px] border text-[#e8254d] bg-[rgba(197,3,55,0.1)] border-[rgba(197,3,55,0.2)]">
@@ -301,7 +301,7 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
           <div className="text-[15px] font-bold text-white mb-3 tracking-[-0.2px]">📋 개선 방향</div>
           <div className="flex flex-col gap-2.5">
             {result.improvements.map((s, i) => (
-              <div key={i} className="flex gap-2.5 p-3.5 bg-[rgba(197,3,55,0.04)] border border-[rgba(197,3,55,0.15)] rounded-[12px]">
+              <div key={i} className="flex gap-2.5 p-3.5 bg-white/[0.04] border border-white/[0.08] rounded-[12px]">
                 <span className="text-[20px] shrink-0 leading-[1.4]">{IMPROVEMENT_ICONS[i] || "📌"}</span>
                 <span className="text-[13px] font-normal text-white/60 leading-[1.6] tracking-[-0.2px]"
                   dangerouslySetInnerHTML={{
