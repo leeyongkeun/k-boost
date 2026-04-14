@@ -27,7 +27,7 @@ export default function Completion({ onHome }: CompletionProps) {
     if (h === 0) h = 12;
     const mm = m < 10 ? "0" + m : String(m);
     setPopupTime(`${ampm} ${h}:${mm}`);
-    setQueueNum(Math.floor(Math.random() * 80) + 240);
+    setQueueNum(Math.floor(Math.random() * 100) + 200); // 200~299
 
     return () => {
       clearTimeout(t1);

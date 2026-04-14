@@ -25,16 +25,16 @@ function useBoostValue() {
   return boost;
 }
 
-// --- Queue count fluctuation ---
+// --- Queue count fluctuation (200~299) ---
 function useQueueCount() {
-  const [count, setCount] = useState(() => Math.floor(Math.random() * 10) + 20);
+  const [count, setCount] = useState(() => Math.floor(Math.random() * 100) + 200);
   const baseRef = useRef(count);
   useEffect(() => {
     const interval = setInterval(() => {
       const delta = Math.floor(Math.random() * 5) - 2;
-      baseRef.current = Math.max(12, Math.min(39, baseRef.current + delta));
+      baseRef.current = Math.max(200, Math.min(299, baseRef.current + delta));
       setCount(baseRef.current);
-    }, 3500);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
   return count;
