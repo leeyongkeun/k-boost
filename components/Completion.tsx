@@ -9,11 +9,31 @@ interface CompletionProps {
 export default function Completion({ onHome }: CompletionProps) {
   const [showCheck, setShowCheck] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupTime, setPopupTime] = useState("");
+  const [queueNum, setQueueNum] = useState(0);
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowCheck(true), 800);
     const t2 = setTimeout(() => setShowConfetti(true), 1000);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const t3 = setTimeout(() => setShowPopup(true), 2800);
+
+    // Generate popup time and queue number
+    const now = new Date();
+    let h = now.getHours();
+    const m = now.getMinutes();
+    const ampm = h >= 12 ? "오후" : "오전";
+    h = h % 12;
+    if (h === 0) h = 12;
+    const mm = m < 10 ? "0" + m : String(m);
+    setPopupTime(`${ampm} ${h}:${mm}`);
+    setQueueNum(Math.floor(Math.random() * 80) + 240);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
   }, []);
 
   return (
@@ -35,7 +55,11 @@ export default function Completion({ onHome }: CompletionProps) {
 
       {/* Logo Section */}
       <div className="text-center relative z-[2] animate-fade-down">
-        <div className="text-[24px] font-black text-white tracking-[-0.3px]">K-BOOST</div>
+        <img
+          src="/logo-w.png"
+          alt="K-BOOST"
+          className="h-[30px] w-auto block mx-auto object-contain"
+        />
         <div className="mt-2 text-[11.5px] font-normal text-white/60 tracking-[0.5px]">
           당신의 사업에 글로벌 엔진을 달아보세요
         </div>
@@ -91,18 +115,64 @@ export default function Completion({ onHome }: CompletionProps) {
 
         {/* Bottom area */}
         <div className="w-full max-w-[380px] mt-[72px] animate-[fadeUp_0.6s_ease-out_0.9s_both]">
-          <button
-            onClick={onHome}
-            className="flex items-center justify-center gap-1.5 w-full py-[18px] px-5 border-none rounded-2xl text-[14px] font-bold tracking-[0.2px] text-white cursor-pointer relative overflow-hidden bg-gradient-to-br from-[#C50337] via-[#e8254d] to-[#C50337] bg-[length:200%_200%] animate-shimmer-btn shadow-[0_4px_20px_rgba(197,3,55,0.45),0_10px_40px_rgba(197,3,55,0.18),inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-2px_0_rgba(0,0,0,0.12)] active:scale-[0.97] transition-transform whitespace-nowrap"
+          <a
+            href="https://kboost.co.kr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 w-full py-[18px] px-5 border-none rounded-2xl text-[14px] font-bold tracking-[0.2px] text-white cursor-pointer relative overflow-hidden bg-gradient-to-br from-[#C50337] via-[#e8254d] to-[#C50337] bg-[length:200%_200%] animate-shimmer-btn shadow-[0_4px_20px_rgba(197,3,55,0.45),0_10px_40px_rgba(197,3,55,0.18),inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-2px_0_rgba(0,0,0,0.12)] active:scale-[0.97] transition-transform whitespace-nowrap no-underline"
           >
             <span className="absolute top-0 -left-full w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sheen" />
             🔍 1,700만 외국인 관광객이 돈을 쓰는 곳은? →
-          </button>
+          </a>
           <div className="mt-3 text-center text-[11.5px] font-normal text-white/[0.38] tracking-[0.2px]">
             K-BOOST · 모르면 뒤처지는 글로벌 매출 트렌드
           </div>
         </div>
       </div>
+
+      {/* URGENT POPUP */}
+      {showPopup && (
+        <div className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center px-5 animate-[fadeIn_0.3s_ease-out]">
+          <div className="w-full max-w-[340px] bg-white border-[3px] border-[#dd0000] shadow-[0_2px_12px_rgba(0,0,0,0.4)]">
+            {/* Popup Header */}
+            <div className="bg-[#dd0000] px-3 py-2 flex items-center gap-[5px]">
+              <span className="text-[13px] leading-none">🚨</span>
+              <span className="text-[12px] font-black text-white">[긴급] 리포트 발송 지연 안내</span>
+            </div>
+
+            {/* Popup Body */}
+            <div className="px-3.5 pt-3.5 pb-2.5 bg-white">
+              <div className="text-[12px] font-normal text-[#222] leading-[1.85] break-keep" style={{ fontFamily: "'Dotum', 'Gulim', '돋움', '굴림', 'Apple SD Gothic Neo', sans-serif" }}>
+                현재 신청이 폭주하고 있어 맞춤 리포트(PDF) 발송이{" "}
+                <span className="text-[#d00] font-black">정상 소요시간보다 지연</span>되고 있습니다.
+                <br /><br />
+                순서대로 제작 진행 중이오니 조금만 기다려주세요.
+              </div>
+
+              <div className="mt-2.5 bg-[#f5f5f5] border border-[#ddd] px-2.5 py-2 text-[11px] text-[#555] leading-[1.7]" style={{ fontFamily: "'Dotum', 'Gulim', '돋움', sans-serif" }}>
+                현재 대기열 :{" "}
+                <span className="font-outfit font-extrabold text-[#d00] text-[13px]">{queueNum}</span>건 처리중
+                <br />
+                ※ 이미 접수된 건은 <b className="text-black">재신청 불필요</b> (순번 유지)
+              </div>
+
+              <div className="mt-2 text-[10px] text-[#aaa] text-right" style={{ fontFamily: "'Dotum', 'Gulim', '돋움', sans-serif" }}>
+                <span className="inline-block w-1 h-1 bg-[#d00] rounded-full mr-[3px] align-middle animate-[blink_0.8s_step-end_infinite]" />
+                {popupTime} 기준
+              </div>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setShowPopup(false)}
+              className="block mx-3 mb-3 mt-1 w-[calc(100%-24px)] py-[9px] border border-[#ccc] bg-[#f0f0f0] text-[11px] font-bold text-[#333] cursor-pointer active:bg-[#e0e0e0]"
+              style={{ fontFamily: "'Dotum', 'Gulim', '돋움', sans-serif" }}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

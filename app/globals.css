@@ -210,3 +210,9 @@ input, select, textarea {
   mask-image: radial-gradient(ellipse 60% 50% at 50% 45%, black 20%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 45%, black 20%, transparent 100%);
 }
+
+/* Popup blink animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
