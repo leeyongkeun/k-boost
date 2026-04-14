@@ -167,15 +167,12 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
         }}
       >
 
-      {/* ━━━ 외국인 수입 플랫폼 (Platform Registration) ━━━ */}
+      {/* ━━━ 지도 등록 현황 (Platform Registration) ━━━ */}
       {result.platforms && result.platforms.length > 0 && (() => {
-        const registeredCount = result.platforms.filter(p => p.registered).length + (result.instagram_url ? 1 : 0);
-        const totalCount = result.platforms.length + (result.instagram_url ? 1 : 0);
         return (
           <div className="p-[18px] bg-white/[0.04] border border-white/[0.08] rounded-[14px] mb-7">
             <div className="flex items-center justify-between mb-3.5">
-              <span className="text-[14px] font-bold text-white tracking-[-0.2px]">외국인 수입 플랫폼</span>
-              <span className="text-[12px] font-bold text-[#e8254d]">{registeredCount}/{totalCount} 등록됨</span>
+              <span className="text-[14px] font-bold text-white tracking-[-0.2px]">지도 등록 현황</span>
             </div>
             <div className="grid grid-cols-2 gap-2.5">
               {result.platforms.map((p) => {
