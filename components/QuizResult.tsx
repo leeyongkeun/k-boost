@@ -305,7 +305,9 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
                 <span className="text-[20px] shrink-0 leading-[1.4]">{IMPROVEMENT_ICONS[i] || "📌"}</span>
                 <span className="text-[13px] font-normal text-white/60 leading-[1.6] tracking-[-0.2px]"
                   dangerouslySetInnerHTML={{
-                    __html: s.replace(/^([^:：]+[:：])\s*/, '<strong class="font-bold text-white/85">$1</strong> ')
+                    __html: s
+                      .replace(/[<>]/g, (c) => c === "<" ? "&lt;" : "&gt;")
+                      .replace(/^([^:：]+[:：])\s*/, '<strong class="font-bold text-white/85">$1</strong> ')
                   }}
                 />
               </div>

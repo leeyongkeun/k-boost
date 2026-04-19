@@ -1,9 +1,13 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
 
-// 서명 비밀키 (환경변수 또는 관리자 비밀번호 기반)
+// 서명 비밀키 (환경변수 필수)
 function getSecret(): string {
-  return process.env.ADMIN_PASSWORD || "zjstjfxld1!2@3#";
+  const secret = process.env.ADMIN_PASSWORD;
+  if (!secret) {
+    throw new Error("ADMIN_PASSWORD 환경변수가 설정되지 않았습니다.");
+  }
+  return secret;
 }
 
 export const SESSION_TTL = 4 * 60 * 60 * 1000; // 4시간

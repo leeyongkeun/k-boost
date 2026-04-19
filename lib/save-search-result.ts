@@ -2,6 +2,8 @@ import { supabase } from "./supabase";
 import { PlatformSearchResult } from "./platform-search";
 import { CACHE_TTL_DAYS } from "./constants";
 
+const isDev = process.env.NODE_ENV === "development";
+
 interface SaveSearchParams {
   searchKeyword: string;
   foreignRatio: string;
@@ -73,9 +75,9 @@ export function saveSearchResult(params: SaveSearchParams): void {
     })
     .then(({ error }) => {
       if (error) {
-        console.error("[save-search-result] Failed to save:", error.message);
+        if (isDev) console.error("[save-search-result] Failed to save:", error.message);
       } else {
-        console.log("[save-search-result] Saved:", params.searchKeyword);
+        if (isDev) console.log("[save-search-result] Saved:", params.searchKeyword);
       }
     });
 }
@@ -96,7 +98,7 @@ export async function getCachedResult(searchKeyword: string): Promise<PlatformSe
     .limit(1);
 
   if (error) {
-    console.error("[save-search-result] Cache lookup error:", error.message);
+    if (isDev) console.error("[save-search-result] Cache lookup error:", error.message);
     return null;
   }
 
@@ -105,7 +107,7 @@ export async function getCachedResult(searchKeyword: string): Promise<PlatformSe
   }
 
   const row = data[0];
-  console.log("[save-search-result] Cache HIT for:", searchKeyword);
+  if (isDev) console.log("[save-search-result] Cache HIT for:", searchKeyword);
 
   // DB row → PlatformSearchResult 복원
   return {

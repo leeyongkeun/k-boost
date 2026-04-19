@@ -3,6 +3,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { isValidSession } from "@/lib/admin-auth";
 import { CardNewsItem } from "@/lib/cardnews-types";
 import { getGradientKey } from "@/lib/cardnews-gradients";
+
+const isDev = process.env.NODE_ENV === "development";
 import { pickRandomTopics } from "@/lib/cardnews-topics";
 import { supabase } from "@/lib/supabase";
 
@@ -259,6 +261,6 @@ async function saveCardNewsToDb(cards: CardNewsItem[]): Promise<string | null> {
     return null;
   }
 
-  console.log("[cardnews] Saved set:", setId, "with", cardRows.length, "cards");
+  if (isDev) console.log("[cardnews] Saved set:", setId, "with", cardRows.length, "cards");
   return setId;
 }

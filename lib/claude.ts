@@ -3,6 +3,8 @@ import { AnalysisResult, PlatformInfo } from "./types";
 import { logError } from "./error-logger";
 import { normalizeBreakdown, calcScoreAndGrade, parseAiJson, validateParsed, buildAnalysisResult } from "./normalize-result";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
@@ -130,7 +132,7 @@ ${platformSummary}
     });
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
-    console.log("[claude] Raw response length:", text.length, "stop_reason:", message.stop_reason);
+    if (isDev) console.log("[claude] Raw response length:", text.length, "stop_reason:", message.stop_reason);
 
     if (message.stop_reason === "max_tokens") {
       console.error("[claude] Response was truncated (max_tokens reached)");

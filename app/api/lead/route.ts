@@ -6,7 +6,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { phone, storeName } = body;
 
-    if (!phone || phone.length < 10) {
+    const cleaned = phone ? phone.replace(/[^0-9]/g, "") : "";
+    if (!cleaned || cleaned.length < 10 || cleaned.length > 11 || !/^01[016789]/.test(cleaned)) {
       return NextResponse.json(
         { error: "유효한 연락처를 입력해주세요." },
         { status: 400 }
@@ -25,11 +26,17 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (selectError) {
-      console.error("Lead lookup error:", selectError);
-      return NextResponse.json({ success: true });
+      return NextResponse.json(
+        { error: "연락처 저장에 실패했습니다. 잠시 후 다시 시도해주세요." },
+        { status: 500 }
+      );
     }
 
-    if (!rows || rows.length === 0) {
+    let targetId: string | null = null;
+
+    if (rows && rows.length > 0) {
+      targetId = rows[0].id;
+    } else {
       // Fallback: find the most recent row for this store regardless of time
       const { data: fallbackRows, error: fallbackError } = await supabase
         .from("search_results")
@@ -39,29 +46,25 @@ export async function POST(req: NextRequest) {
         .limit(1);
 
       if (fallbackError || !fallbackRows || fallbackRows.length === 0) {
-        console.error("No search_results found for store:", storeName);
-        return NextResponse.json({ success: true });
+        return NextResponse.json(
+          { error: "매장 정보를 찾을 수 없습니다. 다시 시도해주세요." },
+          { status: 404 }
+        );
       }
 
-      const { error: updateError } = await supabase
-        .from("search_results")
-        .update({ customer_phone: phone })
-        .eq("id", fallbackRows[0].id);
-
-      if (updateError) {
-        console.error("Lead update error:", updateError);
-      }
-
-      return NextResponse.json({ success: true });
+      targetId = fallbackRows[0].id;
     }
 
     const { error: updateError } = await supabase
       .from("search_results")
-      .update({ customer_phone: phone })
-      .eq("id", rows[0].id);
+      .update({ customer_phone: cleaned })
+      .eq("id", targetId);
 
     if (updateError) {
-      console.error("Lead update error:", updateError);
+      return NextResponse.json(
+        { error: "연락처 저장에 실패했습니다. 잠시 후 다시 시도해주세요." },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });

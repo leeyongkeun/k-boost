@@ -279,7 +279,7 @@ export default function CardNewsPage() {
     }
     setUploading(false);
     setUploadDone(true);
-    console.log(`[upload] ${successCount}/${newsSet.cards.length} cards uploaded`);
+    if (process.env.NODE_ENV === "development") console.log(`[upload] ${successCount}/${newsSet.cards.length} cards uploaded`);
   };
 
   // Login

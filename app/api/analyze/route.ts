@@ -12,10 +12,14 @@ import {
   RATE_LIMIT_WINDOW_MS,
 } from "@/lib/constants";
 
+const isDev = process.env.NODE_ENV === "development";
+
 // 분석 모드: "api" (네이버/카카오 API + Claude 분석) | "gemini_search" (Gemini 웹검색) | "db" (DB 목데이터)
 const ANALYZE_MODE = process.env.ANALYZE_MODE || "db";
 
 // --- Rate Limiter (인메모리, IP 기반) ---
+// NOTE: Vercel 서버리스 환경에서는 인스턴스 간 Map이 공유되지 않음.
+// 트래픽 증가 시 Supabase/Redis 기반 rate limiter로 교체 권장.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function isRateLimited(ip: string): boolean {
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
       const { analyzeWithPlatformData } = await import("@/lib/claude");
       const { saveSearchResult, getCachedResult } = await import("@/lib/save-search-result");
 
-      console.log("[analyze] API mode - searching platforms for:", storeName);
+      if (isDev) console.log("[analyze] API mode - searching platforms for:", storeName);
 
       // 1단계: 캐시 조회 + DB 상권 조회 병렬
       const [cachedData, areaLookup] = await Promise.all([
@@ -112,7 +116,7 @@ export async function POST(request: NextRequest) {
         };
       }
 
-      console.log("[analyze] Cache + DB lookup done in", Date.now() - startTime, "ms");
+      if (isDev) console.log("[analyze] Cache + DB lookup done in", Date.now() - startTime, "ms");
 
       // 2단계: 캐시 히트 or 3개 플랫폼 병렬 검색
       let platformData = cachedData;
@@ -120,7 +124,7 @@ export async function POST(request: NextRequest) {
 
       if (platformData) {
         fromCache = true;
-        console.log("[analyze] Cache HIT - skipping API calls");
+        if (isDev) console.log("[analyze] Cache HIT - skipping API calls");
       } else {
         platformData = await withGlobalTimeout(searchPlatforms(storeInfo), PLATFORM_SEARCH_TIMEOUT_MS);
       }
@@ -133,7 +137,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      console.log("[analyze] Platform data ready in", Date.now() - startTime, "ms");
+      if (isDev) console.log("[analyze] Platform data ready in", Date.now() - startTime, "ms");
 
       // 3단계: Claude 분석 (남은 시간 전부 사용)
       const remainingTime = Math.max(5000, GLOBAL_ANALYSIS_TIMEOUT_MS - (Date.now() - startTime));
@@ -155,7 +159,7 @@ export async function POST(request: NextRequest) {
         remainingTime
       );
 
-      console.log("[analyze] Total time:", Date.now() - startTime, "ms");
+      if (isDev) console.log("[analyze] Total time:", Date.now() - startTime, "ms");
 
       if (!result) {
         logError({ searchKeyword: storeInfo, errorMessage: "Claude 분석 결과 null 반환", errorType: "claude_analysis" });
@@ -195,7 +199,7 @@ export async function POST(request: NextRequest) {
         };
       }
     } catch (e) {
-      console.log("[analyze] DB lookup skipped:", e);
+      if (isDev) console.log("[analyze] DB lookup skipped:", e);
     }
 
     // --- 모드 2: Gemini 웹검색 (Google Search Grounding) ---
@@ -226,7 +230,7 @@ export async function POST(request: NextRequest) {
     // --- 모드 3: DB 목데이터 (기본, 무료) ---
     const lookup = await lookupStore(storeInfo);
 
-    console.log("[analyze] DB mode - storeInfo:", storeInfo, "matchType:", lookup.matchType);
+    if (isDev) console.log("[analyze] DB mode - storeInfo:", storeInfo, "matchType:", lookup.matchType);
 
     if (lookup.matchType === "mock") {
       return NextResponse.json(

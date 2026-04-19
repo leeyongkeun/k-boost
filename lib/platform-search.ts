@@ -3,6 +3,8 @@ import { logError } from "./error-logger";
 
 import { API_TIMEOUT_MS } from "./constants";
 
+const isDev = process.env.NODE_ENV === "development";
+
 interface NaverItem {
   title: string;
   link: string;
@@ -61,7 +63,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
     promise,
     new Promise<null>((resolve) => {
       setTimeout(() => {
-        console.log(`[platform-search] ${label} timed out after ${ms}ms`);
+        if (isDev) console.log(`[platform-search] ${label} timed out after ${ms}ms`);
         resolve(null);
       }, ms);
     }),
@@ -97,7 +99,7 @@ async function searchNaver(query: string): Promise<NaverItem | null> {
     }
 
     const data = await res.json();
-    console.log("[platform-search] Naver response total:", data.total, "items:", data.items?.length);
+    if (isDev) console.log("[platform-search] Naver response total:", data.total, "items:", data.items?.length);
     if (!data.items || data.items.length === 0) return null;
 
     return data.items[0] as NaverItem;
@@ -136,7 +138,7 @@ async function searchKakao(query: string): Promise<KakaoDocument | null> {
     }
 
     const data = await res.json();
-    console.log("[platform-search] Kakao response total:", data.meta?.total_count, "docs:", data.documents?.length);
+    if (isDev) console.log("[platform-search] Kakao response total:", data.meta?.total_count, "docs:", data.documents?.length);
     if (!data.documents || data.documents.length === 0) return null;
 
     return data.documents[0] as KakaoDocument;
@@ -159,7 +161,7 @@ async function searchGoogleMaps(query: string): Promise<{
 } | null> {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
-    console.log("[platform-search] Google Maps API key not set, skipping");
+    if (isDev) console.log("[platform-search] Google Maps API key not set, skipping");
     return null;
   }
 
@@ -255,14 +257,14 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
     searchGoogleMaps(query),
   ]);
 
-  console.log("[platform-search] All APIs done in", Date.now() - startTime, "ms");
-  console.log("[platform-search] Naver:", naverResult ? "found" : "null",
+  if (isDev) console.log("[platform-search] All APIs done in", Date.now() - startTime, "ms");
+  if (isDev) console.log("[platform-search] Naver:", naverResult ? "found" : "null",
     "| Kakao:", kakaoResult ? "found" : "null",
     "| Google:", googleResult ? "found" : "null");
 
   // 네이버/카카오 둘 다 못 찾으면 실패
   if (!naverResult && !kakaoResult) {
-    console.log("[platform-search] Both Naver/Kakao failed for query:", query);
+    if (isDev) console.log("[platform-search] Both Naver/Kakao failed for query:", query);
     logError({ searchKeyword: query, errorMessage: "네이버/카카오 모두 검색 결과 없음", errorType: "platform_search" });
     return null;
   }
@@ -313,7 +315,7 @@ export async function searchPlatforms(query: string): Promise<PlatformSearchResu
     },
   ];
 
-  console.log("[platform-search] Total time:", Date.now() - startTime, "ms");
+  if (isDev) console.log("[platform-search] Total time:", Date.now() - startTime, "ms");
 
   return {
     storeName,

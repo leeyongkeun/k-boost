@@ -19,8 +19,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const { id, password } = await req.json();
-    const adminId = process.env.ADMIN_ID || "kb_admin";
-    const adminPassword = process.env.ADMIN_PASSWORD || "zjstjfxld1!2@3#";
+    const adminId = process.env.ADMIN_ID;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminId || !adminPassword) {
+      return NextResponse.json(
+        { error: "서버 설정 오류입니다. 관리자에게 문의해주세요." },
+        { status: 500 }
+      );
+    }
 
     if (id !== adminId || password !== adminPassword) {
       recordAttempt(ip);
