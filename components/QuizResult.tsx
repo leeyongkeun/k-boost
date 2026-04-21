@@ -40,22 +40,21 @@ function useQueueCount() {
   return count;
 }
 
-// --- Progress counter ---
+// --- Progress counter (0 → 100% over 3s) ---
 function useProgressPct() {
   const [pct, setPct] = useState(0);
-  const pctRef = useRef(0);
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-    const tick = () => {
-      if (pctRef.current < 95) {
-        const inc = pctRef.current < 40 ? Math.random() * 2.5 + 0.8 : Math.random() * 1.2 + 0.3;
-        pctRef.current = Math.min(95, pctRef.current + inc);
-        setPct(Math.round(pctRef.current));
-      }
-      timeout = setTimeout(tick, 400 + Math.random() * 600);
+    const DURATION = 3000;
+    const start = performance.now();
+    let frame: number;
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const ratio = Math.min(1, elapsed / DURATION);
+      setPct(Math.round(ratio * 100));
+      if (ratio < 1) frame = requestAnimationFrame(tick);
     };
-    tick();
-    return () => clearTimeout(timeout);
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
   }, []);
   return pct;
 }
@@ -393,7 +392,7 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
             </div>
             <div className="w-[120px] h-1.5 bg-white/[0.06] rounded-[3px] overflow-hidden mb-1.5">
               <div
-                className="h-full bg-gradient-to-r from-[#C50337] to-[#e8254d] rounded-[3px] transition-[width] duration-1000 ease-in-out"
+                className="h-full bg-gradient-to-r from-[#C50337] to-[#e8254d] rounded-[3px] transition-[width] duration-100 ease-linear"
                 style={{ width: `${genPct}%` }}
               />
             </div>
