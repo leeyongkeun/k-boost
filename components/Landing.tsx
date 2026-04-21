@@ -71,7 +71,7 @@ export default function Landing({ onStart }: LandingProps) {
       {/* Headline */}
       <div className="text-center relative z-[2] animate-[fadeIn_0.8s_ease-out_0.15s_both]">
         <h1 className="text-[24px] font-bold leading-[1.55] tracking-[-0.3px] text-white break-keep">
-          외국인 관광객 <em className="not-italic text-[#e8254d]">1,700만</em> 돌파,<br />
+          외국인 관광객 <em className="not-italic text-[#e8254d]">1,893만</em> 돌파,<br />
           역사상 단 한 번도 없었던 매출 기회
         </h1>
       </div>
