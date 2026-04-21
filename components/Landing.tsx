@@ -84,8 +84,8 @@ export default function Landing({ onStart }: LandingProps) {
           {/* Orbit */}
           <div className="absolute top-1/2 left-1/2 w-[min(32dvh,200px)] h-[min(32dvh,200px)] border border-white/5 rounded-full animate-orbit-spin before:content-[''] before:absolute before:-top-1 before:left-1/2 before:w-[7px] before:h-[7px] before:bg-[#C50337] before:rounded-full before:shadow-[0_0_14px_#C50337]" />
           {/* Rocket */}
-          <div className="w-[min(20dvh,130px)] h-[min(20dvh,130px)] leading-none animate-rocket-float relative z-[2] drop-shadow-[0_0_50px_rgba(197,3,55,0.35)] drop-shadow-[0_25px_60px_rgba(2,28,79,0.7)]">
-            <img src="/rocket.svg" alt="rocket" className="w-full h-full select-none" draggable={false} />
+          <div className="text-[min(20dvh,130px)] leading-none animate-rocket-float relative z-[2] drop-shadow-[0_0_50px_rgba(197,3,55,0.35)] drop-shadow-[0_25px_60px_rgba(2,28,79,0.7)]">
+            🚀
           </div>
           {/* Trail */}
           <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 flex gap-1.5">
