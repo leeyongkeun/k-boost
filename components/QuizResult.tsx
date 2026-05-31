@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import { AnalysisResult } from "@/lib/types";
 import ScoreRing from "./ScoreRing";
+import { trackLead } from "@/lib/pixel";
 
 interface QuizResultProps {
   result: AnalysisResult;
@@ -109,6 +110,13 @@ export default function QuizResult({ result, onRestart, resultId, onComplete }: 
     } catch {
       // fire-and-forget — proceed to completion even on error
     }
+    // ★ 가장 중요한 전환 이벤트 — 연락처 제출(리드)
+    // 저장 성공/실패와 무관하게 사용자가 제출을 완료한 시점에 발화
+    trackLead({
+      content_name: result.store_name,
+      score: result.score,
+      grade: result.grade,
+    });
     onComplete?.();
   };
 

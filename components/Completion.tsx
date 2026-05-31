@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackCustom } from "@/lib/pixel";
 
 interface CompletionProps {
   onHome: () => void;
@@ -119,6 +120,7 @@ export default function Completion({ onHome }: CompletionProps) {
             href="https://kboost.co.kr/plan"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackCustom("cta_click")}
             className="flex items-center justify-center gap-1.5 w-full py-[18px] px-5 border-none rounded-2xl text-[14px] font-bold tracking-[0.2px] text-white cursor-pointer relative overflow-hidden bg-gradient-to-br from-[#C50337] via-[#e8254d] to-[#C50337] bg-[length:200%_200%] animate-shimmer-btn shadow-[0_4px_20px_rgba(197,3,55,0.45),0_10px_40px_rgba(197,3,55,0.18),inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-2px_0_rgba(0,0,0,0.12)] active:scale-[0.97] transition-transform whitespace-nowrap no-underline"
           >
             <span className="absolute top-0 -left-full w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sheen" />

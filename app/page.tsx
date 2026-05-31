@@ -7,6 +7,7 @@ import Landing from "@/components/Landing";
 import QuizLoading from "@/components/QuizLoading";
 import QuizResult from "@/components/QuizResult";
 import Completion from "@/components/Completion";
+import { trackCustom } from "@/lib/pixel";
 
 export default function Home() {
   const [phase, setPhase] = useState<"landing" | "quiz" | "loading" | "result" | "completion">("landing");
@@ -44,6 +45,8 @@ export default function Home() {
       return;
     }
     setShowValidation(false);
+    // 퀴즈 제출(결과 확인 버튼) — 모든 답변 완료 후 실제 진행 시점
+    trackCustom("quiz_start");
     setPhase("loading");
     setError(null);
 
@@ -60,6 +63,8 @@ export default function Home() {
 
       setResult(data as AnalysisResult);
       setPhase("result");
+      // 결과 화면 진입
+      trackCustom("result_view");
       containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
 
       // 결과 저장 (공유용 ID 생성)
@@ -102,7 +107,13 @@ export default function Home() {
       className="min-h-dvh bg-[linear-gradient(172deg,#010e2a_0%,#021C4F_35%,#0a2a6b_70%,#031d52_100%)] text-white overflow-y-auto relative hide-scrollbar"
     >
       {phase === "landing" && (
-        <Landing onStart={() => setPhase("quiz")} />
+        <Landing
+          onStart={() => {
+            // 랜딩 시작 버튼 — 테스트 시작
+            trackCustom("test_start");
+            setPhase("quiz");
+          }}
+        />
       )}
 
       {phase === "completion" && (

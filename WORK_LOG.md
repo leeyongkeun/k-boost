@@ -1,5 +1,121 @@
 # K-BOOST 작업 내역
 
+## 2026-05-31 (14차)
+
+### 메타(Facebook) 픽셀 설치 — 광고 성과 추적
+- 가이드(`docs/meta_pixel_guide.md`)는 CRA(`public/index.html`) 기준 → **Next.js App Router 방식으로 변환** 적용
+- 픽셀 ID: `1307787700930555` → `.env.local` 의 `NEXT_PUBLIC_META_PIXEL_ID` 환경변수로 관리 (하드코딩 폴백 포함)
+- **`lib/pixel.ts` 신규**: `window.fbq` 타입 선언 + `trackStandard`/`trackCustom`/`trackLead` 헬퍼 (SSR·로딩전·광고차단 가드 일원화)
+- **기본 코드**: `app/layout.tsx` `<head>` 에 `next/script`(afterInteractive) + `<noscript>` — PageView 자동
+- **이벤트 6종 발화 지점**:
+  - `test_start` — `app/page.tsx` Landing onStart(랜딩 시작 버튼)
+  - `quiz_start` — `app/page.tsx` handleSubmit(결과 확인 버튼, 검증 통과 후)
+  - `result_view` — `app/page.tsx` result phase 진입
+  - `Lead` ★ — `QuizResult.tsx` handleCtaSubmit(연락처 제출 완료) — store/score/grade 파라미터 포함
+  - `cta_click` — `Completion.tsx` 외부 CTA(kboost.co.kr/plan) onClick
+- 공유 결과 페이지(`/result/[id]`)는 중복 집계 방지 위해 **메인 퍼널만 추적**(미적용)
+- `npm run build` 타입 통과 확인
+- 검증: 브라우저 콘솔 `typeof fbq` → `"function"`, 또는 Meta Pixel Helper 확장으로 이벤트 실발화 확인
+
+## 2026-03-30 (13차)
+
+### inbound 유입경로 추적
+- URL `?inbound=xxx` 쿼리 파라미터 캡처 → DB 저장
+- `search_results` 테이블에 `inbound TEXT` 컬럼 추가 (마이그레이션 SQL 실행 완료)
+- 프론트(`page.tsx`) → API(`analyze/route.ts`) → `save-search-result.ts` 전체 연결
+- 관리자 리스트 테이블 + 상세 모달에 유입경로 컬럼 표시
+
+### 관리자 대시보드
+- **KPI 카드 4개**: 총 등록 수 / 오늘 등록 / 리드 수집률(%) / PDF 발송률(%)
+- **일별 등록 스택 바 차트**: Recharts 라이브러리, 등급별(S~D) 컬러 스택
+  - 7/14/30일 기간 토글 (기본 14일)
+- **매장 위치 지도**: Leaflet + OpenStreetMap
+  - 등급별 컬러 마커 핀, 클릭 시 매장명/주소/등급/점수 팝업
+  - 카카오 좌표 우선, 네이버 좌표 폴백
+  - 초기 위치 종로구 인근 고정 (zoom 12)
+- 차트 + 지도 50:50 가로 배치 (`lg:grid-cols-2`)
+- `lib/admin-auth.ts` — 세션 인증 헬퍼 공유 모듈 분리
+- `/api/admin/stats` — 통계 전용 API 엔드포인트 신규
+
+### 카드뉴스 자동 생성기 (`/admin/cardnews`)
+- **Gemini Search Grounding**으로 최신 관광 뉴스 수집
+- 10장 카드뉴스 자동 생성: 커버(1장) + 콘텐츠(8장) + CTA(1장)
+- **90+ 주제 풀** — 10개 카테고리(방한통계, 소비트렌드, K-컬처, 핫플레이스, 정책, 매장운영, 시즌, 디지털, 글로벌비교, 미래전망)에서 매번 랜덤 8개 선택
+- **도파민 자극형 헤드라인** 프롬프트 가이드 (긴급성/충격/호기심/비교/꿀팁 등)
+- **Pexels API** 키워드 기반 배경 이미지 (서버 fetch → base64 변환)
+- 1080×1080 인스타그램 사이즈 렌더링 (`html2canvas`)
+- 개별 PNG 다운로드 + 전체 ZIP 다운로드 (`jszip`)
+- 10종 그라디언트 배경 프리셋, 배경 이미지 원본 색감 + 반투명 텍스트 박스
+- bodyPoints 2줄 제한, 폰트 사이즈 확대
+
+### 기타
+- `next.config.ts` — `/admin`, `/admin/cardnews` 캐시 비활성화 (`no-store`)
+- Leaflet 타일 렌더링 수정 (Tailwind preflight `img` 오버라이드)
+- 관리자 메인에 "📰 카드뉴스" 바로가기 링크 추가
+
+### 신규 패키지
+- `recharts` — 차트
+- `leaflet` + `@types/leaflet` — 지도
+- `html2canvas` — HTML → PNG 캡처
+- `jszip` — ZIP 다운로드
+
+### 카드뉴스 디자인 튜닝 (커밋 a115951 ~ 0710a10)
+- 배경 이미지 10장 모두 다르게 — 프롬프트 키워드 다양화 + Pexels 페이지 분산
+- 배경 이미지 원본 색감 그대로 — 그라디언트/오버레이/장식 원 전부 제거
+- 텍스트 박스 오버레이 15%로 (배경 투과)
+- bodyPoints 2줄 제한, 폰트 사이즈 확대
+
+### 카드뉴스 DB 저장 + 이력 갤러리 (커밋 7e5d8bb)
+- `cardnews_sets` / `cardnews_cards` 테이블 생성 SQL
+- 생성 시 Supabase Storage에 이미지 업로드 + DB에 카드 데이터 저장
+- `/api/admin/cardnews/history` — 이력 조회 API
+- 카드뉴스 페이지에 **생성/이력 탭** 추가
+- 이력 탭: 사진첩 형태 세트 목록 → 클릭 시 10장 상세 보기
+
+### Supabase 작업 필요 (수동)
+- SQL: `scripts/create-cardnews-table.sql` 실행
+- Storage: `cardnews` 버킷 생성 (Public)
+
+### 신규 환경변수 (Vercel에도 등록 필요)
+- `PEXELS_API_KEY` — 카드뉴스 배경 이미지용
+
+### 카드뉴스 최종 렌더링 이미지 저장 (커밋 4f217c1)
+- 서버사이드 배경 원본 업로드 → **클라이언트 html2canvas 캡처 후 업로드**로 변경
+- 생성 후 자동으로 10장 캡처 → `/api/admin/cardnews/upload` → Supabase Storage
+- 텍스트+배경이 합성된 **최종 카드뉴스 PNG**가 이력에 표시됨
+- `cardnews_cards` UPDATE 정책 + Storage 업로드/읽기 정책 SQL 추가
+
+### 인증 시스템 전면 개편 — stateless 토큰 (커밋 22d785d)
+- **문제:** Vercel serverless에서 인메모리 Map 세션이 인스턴스 간 공유 불가 → 이력 조회/stats/카드뉴스 API 전부 401 에러
+- **해결:** HMAC-SHA256 서명 기반 토큰으로 전환 (stateless)
+  - `generateToken()`: 만료시간 + 서명이 토큰 안에 포함
+  - `isValidSession()`: 서명 검증만으로 인증 → 어떤 인스턴스에서든 작동
+- 모든 admin API 경로에서 동일하게 동작 (Map 의존 제거)
+
+### Supabase 추가 SQL 실행 필요
+- `scripts/alter-cardnews-add-update-policy.sql` (cardnews UPDATE + Storage 정책)
+
+### 커밋 이력
+- `2dad7b8`: inbound 쿼리 파라미터 추적
+- `da4264e`: 관리자 대시보드 (KPI + 차트)
+- `b4d8d4b` ~ `d4a634b`: 지도 추가 + 레이아웃 조정
+- `89bf745`: admin 캐시 비활성화
+- `c2f7501`: 카드뉴스 생성기 초기 구현
+- `cfb1f2f`: 주제 풀 90+ 확장
+- `d7327bd` ~ `76cd9b9`: 도파민 헤드라인 + Pexels 이미지
+- `fdaf66d` ~ `0710a10`: 배경 이미지 원본 색감 + 오버레이 튜닝
+- `a115951`: 10장 이미지 다양화
+- `7e5d8bb`: DB 저장 + 이력 갤러리
+- `12d9766`: 이력 조회를 /api/admin으로 통합
+- `4f217c1`: 최종 렌더링 이미지 클라이언트 캡처 → Storage 업로드
+- `22d785d`: 인메모리 세션 → HMAC 서명 기반 stateless 토큰
+- `ee13ce1`: 이력 저장 수동 버튼 + 캡처 안정성 개선
+- `6f86ccd`: CardNewsSet 타입 빌드 에러 수정
+- 전체 push 완료 → Vercel 자동 배포
+- **전 기능 정상 동작 확인 완료** (카드뉴스 생성 + 이력 저장 + 이력 갤러리)
+
+---
+
 ## 2026-03-23 (12차)
 
 ### docs HTML → React 전환 (page1~4 전체)
